@@ -65,20 +65,28 @@ void GraphAnimation(int& animationFlameCount, int& flameNunber, int graphSheet) 
 }
 
 
-void Jump(Charactor& player,char* keys) // キャラクターがジャンプする処理
-{
-	if (!player.isJump)
-	{
-		if (keys[DIK_SPACE])
-		{
-			player.velocity = -player.jumpPower;
-			player.isJump = true;
-		}
-	}
-}
+//void Jump(Charactor& player,char* keys) // キャラクターがジャンプする処理
+//{
+//	if (!player.isJump)
+//	{
+//		if (keys[DIK_SPACE])
+//		{
+//			
+//		}
+//	}
+//}
 
-void PlayerMovingRange(Charactor& player) //プレイヤーの移動範囲制限
-{
+void PlayerMovingRangeJump(Charactor& player,char* keys,char* preKeys) //プレイヤーの移動範囲制限
+{	
+	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
+	{
+		player.velocity = -player.jumpPower;
+		player.isJump = true;
+	}
+	
+	player.velocity += player.gravity;
+	player.pos.y += player.velocity;
+
 	if (player.pos.x - player.radius <= 0.0f)
 	{
 		player.pos.x = 0 + player.radius;
@@ -95,6 +103,7 @@ void PlayerMovingRange(Charactor& player) //プレイヤーの移動範囲制限
 		player.isJump = false;
 		player.velocity = 0.0f;
 	}
+	
 }
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -132,9 +141,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		CharactorMove(player,keys);
 
-		Jump(player,keys);
+		PlayerMovingRangeJump(player,keys,preKeys);
 
-		PlayerMovingRange(player);
 		///
 		/// ↑更新処理ここまで
 		///
