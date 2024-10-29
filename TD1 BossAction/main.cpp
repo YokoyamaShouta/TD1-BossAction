@@ -139,9 +139,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
-		CharactorMove(player,keys);
+		CharactorMove(player,keys); // 左右移動
 
-		PlayerMovingRangeJump(player,keys,preKeys);
+		PlayerMovingRangeJump(player,keys,preKeys); //移動範囲　プレイヤーのジャンプ
 
 		///
 		/// ↑更新処理ここまで
