@@ -1,4 +1,6 @@
 #include <Novice.h>
+#include <time.h>
+#include <stdlib.h>
 
 const char kWindowTitle[] = "TD BossAction";
 
@@ -19,9 +21,9 @@ struct Charactor
 	float gravity;
 	float jumpPower;
 	bool isJump;
+	bool isCanShot;
 	bool action;
 	bool isAlive;
-	bool isCanShot;
 	int shotCoolTime;
 	int hp;
 	int damege;
@@ -40,7 +42,9 @@ struct  Bullet
 	int damege;
 };
 
-void CharactorMove(Charactor& player, char* keys)
+//関数作成
+
+void CharactorMove(Charactor& player, char* keys) //プレイヤー移動
 {
 	if (keys[DIK_D])
 	{
@@ -50,6 +54,73 @@ void CharactorMove(Charactor& player, char* keys)
 	if (keys[DIK_A])
 	{
 		player.pos.x -= player.speed;
+	}
+}
+
+void Jump(Charactor& player,char* keys,char* preKeys) //プレイヤージャンプ
+{	
+	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
+	{
+		player.velocity = -player.jumpPower;
+		player.isJump = true;
+	}
+	
+	player.velocity += player.gravity;
+	player.pos.y += player.velocity;
+
+	if (player.pos.y + player.radius >= 500)
+	{
+		player.pos.y = 500 - player.radius;
+		player.isJump = false;
+		player.velocity = 0.0f;
+	}
+	
+}
+
+void MoveRange(Charactor& player) //プレイヤーの横移動範囲
+{
+	if (player.pos.x - player.radius <= 0.0f)
+	{
+		player.pos.x = 0 + player.radius;
+	}
+
+	if (player.pos.x + player.radius >= 1280.0f)
+	{
+		player.pos.x = 1280.0f - player.radius;
+	}
+}
+
+Bullet playerShockWave[3]; //衝撃波
+void ShockWave(Charactor& player) //衝撃波の描画
+{	
+	for (int i = 0; i < 3; i++)
+	{
+		if (!playerShockWave[i].isShot)
+		{
+			player.shotCoolTime = 60;
+			playerShockWave[i].isShot = true;
+			playerShockWave[i].pos.x = player.pos.x;
+			playerShockWave[i].pos.y = player.pos.y;
+			playerShockWave[i].radius = 8.0f;
+			playerShockWave[i].damege = 1;
+			break;
+		}
+	}
+}
+
+void ShockWaveMove() //衝撃波の移動
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (playerShockWave[i].isShot)
+		{
+			playerShockWave[i].pos.x += playerShockWave[i].speed;
+		}
+
+		if (playerShockWave[i].pos.x - playerShockWave[i].radius >= 1280.0f)
+		{
+			playerShockWave[i].isShot = false;
+		}
 	}
 }
 
@@ -64,36 +135,6 @@ void GraphAnimation(int& animationFlameCount, int& flameNunber, int graphSheet) 
 	}
 }
 
-void PlayerMovingRangeJump(Charactor& player,char* keys,char* preKeys) //プレイヤーの移動範囲制限
-{	
-	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
-	{
-		player.velocity = -player.jumpPower;
-		player.isJump = true;
-	}
-	
-	player.velocity += player.gravity;
-	player.pos.y += player.velocity;
-
-	if (player.pos.x - player.radius <= 0.0f)
-	{
-		player.pos.x = 0 + player.radius;
-	}
-
-	if (player.pos.x + player.radius >= 1280.0f)
-	{
-		player.pos.x = 1280.0f - player.radius;
-	}
-
-	if (player.pos.y + player.radius >= 500)
-	{
-		player.pos.y = 500 - player.radius;
-		player.isJump = false;
-		player.velocity = 0.0f;
-	}
-	
-}
-
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -104,6 +145,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
+	//プレイヤーの変数　初期化
 	Charactor player;
 	player.pos.x = 200.0f;
 	player.pos.y = 300.0f;
@@ -114,7 +156,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.velocity = 0.0f;
 	player.gravity = 0.7f;
 	player.jumpPower = 18.0f;
+	player.shotCoolTime = 60;
 	player.isJump = false;
+	player.isCanShot = false;
+
+	//衝撃波の変数　初期化
+	for (int i = 0; i < 3; i++)
+	{
+		playerShockWave[i].pos.x = player.pos.x;
+		playerShockWave[i].pos.y = player.pos.y;
+		playerShockWave[i].speed = 10.0f;
+		playerShockWave[i].radius = 8.0f;
+		playerShockWave[i].isShot = false;
+	}
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -128,10 +183,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
-		CharactorMove(player,keys); // 左右移動
+		
+		// 左右移動
+		CharactorMove(player,keys); 
 
-		PlayerMovingRangeJump(player,keys,preKeys); //移動範囲　プレイヤーのジャンプ
+		// プレイヤーのジャンプ
+		Jump(player,keys,preKeys); 
 
+		//衝撃波のクールタイム
+		if (player.shotCoolTime >= 0) 
+		{
+			player.shotCoolTime--;
+		}
+
+		if (player.shotCoolTime <= 0)
+		{
+			player.isCanShot = true;
+		}
+		else
+		{
+			player.isCanShot = false;
+		}
+
+		//衝撃波描画
+		if (player.isCanShot)
+		{
+			if (keys[DIK_Q] && !preKeys[DIK_Q])
+			{
+				ShockWave(player);
+			}
+		}
+
+		//衝撃波の移動
+		ShockWaveMove();
+
+		//プレイヤーの横移動範囲
+		MoveRange(player); 
+
+		Novice::ScreenPrintf(10, 20, "%d", player.shotCoolTime);
+
+	
 		///
 		/// ↑更新処理ここまで
 		///
@@ -141,6 +232,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius, (int)player.radius, 0.0f, RED, kFillModeSolid);;
+
+		for (int i = 0; i < 3; i++)
+		{
+			if (playerShockWave[i].isShot)
+			{
+				Novice::DrawEllipse((int)playerShockWave[i].pos.x, (int)playerShockWave[i].pos.y, (int)playerShockWave[i].radius, (int)playerShockWave[i].radius, 0.0f, BLUE, kFillModeSolid);
+			}
+
+			Novice::ScreenPrintf(10, 40 * i, "%f", playerShockWave[i].isShot);
+		}
 
 		///
 		/// ↑描画処理ここまで
