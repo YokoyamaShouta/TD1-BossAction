@@ -149,14 +149,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Charactor player;
 	player.pos.x = 200.0f;
 	player.pos.y = 300.0f;
-	player.wide = 64.0f;
-	player.height = 64.0f;
-	player.radius = 32.0f;
-	player.speed = 5.0f;
+	player.wide = 128.0f;
+	player.height = 128.0f;
+	player.radius = 64.0f;
+	player.speed = 6.0f;
 	player.velocity = 0.0f;
 	player.gravity = 0.7f;
 	player.jumpPower = 18.0f;
 	player.shotCoolTime = 60;
+	player.hp = 5;
 	player.isJump = false;
 	player.isCanShot = false;
 
@@ -170,6 +171,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		playerShockWave[i].isShot = false;
 	}
 
+	Charactor enemy;
+	enemy.pos.x = 200.0f;
+	enemy.pos.y = 700.0f;
+	enemy.radius = 64.0f;
+	enemy.speed = 6.0f;
+	enemy.gravity = 0.7f;
+	enemy.shotCoolTime = 60;
+	enemy.hp = 5;
+	enemy.action = false;
+	enemy.isCanShot = false;
+
+	enum BossAction 
+	{
+		MOVE,
+		DASH,
+		SHOCKWAVE, //衝撃波
+		BLOW,  //パンチ・キック
+	};
+
+	BossAction bossAction = MOVE;
+
+	unsigned int currentTime = static_cast<int>(time(nullptr));
+	srand(currentTime);
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
