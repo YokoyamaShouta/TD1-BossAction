@@ -36,6 +36,7 @@ struct Charactor
 struct  Bullet
 {
 	Vector2 pos;
+	Vector2 direction;
 	float speed;
 	float wide;
 	float height;
@@ -113,16 +114,11 @@ void ShockWave(Charactor& player) //衝撃波の描画
 	}
 }
 
-void ShockWaveMove() //衝撃波の移動
+void ShockWaveRange() //衝撃波のfalse
 {
 	for (int i = 0; i < 3; i++)
 	{
-		if (playerShockWave[i].isShot)
-		{
-			playerShockWave[i].pos.x += playerShockWave[i].speed;
-		}
-
-		if (playerShockWave[i].pos.x - playerShockWave[i].radius >= 1280.0f)
+		if (playerShockWave[i].pos.x - playerShockWave[i].radius >= 1280.0f || playerShockWave[i].pos.x + playerShockWave[i].radius <= 0.0f)
 		{
 			playerShockWave[i].isShot = false;
 		}
@@ -174,6 +170,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	PlayerDirection playerDirection = FRONT;
+	PlayerDirection enemyDirection = FRONT;
 
 	int playerFrontGraph = Novice::LoadTexture("./image/playerFront.png");
 	int playerBackGraph = Novice::LoadTexture("./image/playerBack.png");
@@ -181,6 +178,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//衝撃波の変数　初期化
 	for (int i = 0; i < 3; i++)
 	{
+		playerShockWave[i].direction.x = 1.0f;
 		playerShockWave[i].pos.x = player.pos.x;
 		playerShockWave[i].pos.y = player.pos.y;
 		playerShockWave[i].speed = 10.0f;
@@ -189,10 +187,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 	Charactor enemy;
-	enemy.pos.x = 1000.0f;
+	enemy.pos.x = 700.0f;
 	enemy.pos.y = 300.0f;
 	enemy.radius.x = 64.0f;
 	enemy.radius.y = 64.0f;
+	enemy.direction.x = 0.0f;
 	enemy.speed = 6.0f;
 	enemy.gravity = 0.7f;
 	enemy.velocity = 0.0f;
@@ -203,8 +202,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.isCanShot = false;
 	enemy.isAlive = true;
 
-	int enemyGraph = Novice::LoadTexture("./image/enemy.png");
-
+	int enemyBackGraph = Novice::LoadTexture("./image/enemyBack.png");
+	int enemyFrontGraph = Novice::LoadTexture("./image/enemyFront.png");
+	
 	enum BossAction 
 	{
 		MOVE, //歩き
@@ -237,11 +237,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (keys[DIK_D])
 		{
 			playerDirection = FRONT;
+			for (int i = 0; i < 3; i++)
+			{
+				playerShockWave[i].direction.x = 1.0f;
+			}
 		}
 
 		if (keys[DIK_A])
 		{
 			playerDirection = BACK;
+			for (int i = 0; i < 3; i++)
+			{
+				playerShockWave[i].direction.x = -1.0f;
+			}
 		}
 
 		// プレイヤーのジャンプ
@@ -271,9 +279,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		for (int i = 0; i < 3; i++)
+		{
+			if (playerDirection == FRONT)
+			{
+				playerShockWave[i].direction.x = 1.0f;
+			}
+			else
+			{
+				playerShockWave[i].direction.x = -1.0f;
+			}
+		}		
+
 		//衝撃波の移動
-		ShockWaveMove();
+		ShockWaveRange();
 		
+		//敵の向き
+		if (enemy.pos.x >= player.pos.x)
+		{
+			enemy.direction.x = -1.0f;
+			enemyDirection = BACK;
+		}
+		else
+		{
+			enemy.direction.x = 1.0f;
+			enemyDirection = FRONT;
+		}
+
 		//敵の攻撃
 		if (!enemy.isAction)
 		{
@@ -307,8 +339,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case SHOCKWAVE:
 			break;
 		case BLOW:
-			break;
-		default:
 			break;
 		}
 
@@ -346,7 +376,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		if (enemy.isAlive)
 		{
-			Novice::DrawSprite((int)enemy.pos.x - (int)enemy.radius.x, (int)enemy.pos.y - (int)enemy.radius.y, enemyGraph, 1, 1, 0.0f, WHITE);
+			switch (enemyDirection)
+			{
+			case FRONT:
+				Novice::DrawSprite((int)enemy.pos.x - (int)enemy.radius.x, (int)enemy.pos.y - (int)enemy.radius.y, enemyFrontGraph, 1, 1, 0.0f, WHITE);
+				break;
+			case BACK:
+				Novice::DrawSprite((int)enemy.pos.x - (int)enemy.radius.x, (int)enemy.pos.y - (int)enemy.radius.y, enemyBackGraph, 1, 1, 0.0f, WHITE);
+				break;
+			}
 		}
 
 		for (int i = 0; i < 3; i++)
@@ -355,8 +393,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			{
 				Novice::DrawEllipse((int)playerShockWave[i].pos.x, (int)playerShockWave[i].pos.y, (int)playerShockWave[i].radius, (int)playerShockWave[i].radius, 0.0f, BLUE, kFillModeSolid);
 			}
-
-			Novice::ScreenPrintf(10, 40 * i, "%f", playerShockWave[i].isShot);
 		}
 
 		Novice::DrawLine(0, 600, 1280, 600, RED);
