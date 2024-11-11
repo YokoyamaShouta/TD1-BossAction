@@ -23,8 +23,9 @@ struct Charactor
 	float jumpPower;
 	bool isJump;
 	bool isCanShot;
-	bool action;
+	bool isAction;
 	bool isAlive;
+	int actionJudge;
 	int shotCoolTime;
 	int hp;
 	int damege;
@@ -197,7 +198,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.velocity = 0.0f;
 	enemy.shotCoolTime = 60;
 	enemy.hp = 5;
-	enemy.action = false;
+	enemy.actionJudge = 0;
+	enemy.isAction = false;
 	enemy.isCanShot = false;
 	enemy.isAlive = true;
 
@@ -205,13 +207,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	enum BossAction 
 	{
-		MOVE,
-		DASH,
+		MOVE, //歩き
+		DASH, //ダッシュ
 		SHOCKWAVE, //衝撃波
 		BLOW,  //パンチ・キック
 	};
 
-	//BossAction bossAction = MOVE;
+	BossAction bossAction = MOVE;
 
 	unsigned int currentTime = static_cast<int>(time(nullptr));
 	srand(currentTime);
@@ -271,12 +273,49 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		//衝撃波の移動
 		ShockWaveMove();
+		
+		//敵の攻撃
+		if (!enemy.isAction)
+		{
+			enemy.actionJudge = static_cast<int>(rand() % 10);
+			enemy.isAction = true;
+		}
+
+		if (enemy.actionJudge >= 0)
+		{
+			bossAction = MOVE;
+		}
+		else if (enemy.actionJudge >= 3)
+		{
+			bossAction = DASH;
+		}
+		else if (enemy.actionJudge >= 5)
+		{
+			bossAction = SHOCKWAVE;
+		}
+		else if (enemy.actionJudge >= 7)
+		{
+			bossAction = BLOW;
+		}
+
+		switch (bossAction)
+		{
+		case MOVE:
+			break;
+		case DASH:
+			break;
+		case SHOCKWAVE:
+			break;
+		case BLOW:
+			break;
+		default:
+			break;
+		}
 
 		//プレイヤーの横移動範囲
 		MoveRange(player); 
 		MoveRange(enemy);
 
-		Novice::ScreenPrintf(10, 20, "%d", player.shotCoolTime);
 
 	
 		///
