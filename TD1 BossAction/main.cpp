@@ -13,10 +13,11 @@ struct Vector2
 struct Charactor
 {
 	Vector2 pos;
+	Vector2 radius;
+	Vector2 direction;
 	float speed;
 	float wide;
 	float height;
-	float radius;
 	float velocity;
 	float gravity;
 	float jumpPower;
@@ -46,15 +47,19 @@ struct  Bullet
 
 void CharactorMove(Charactor& player, char* keys) //プレイヤー移動
 {
+	player.direction.x = 0.0f;
+
 	if (keys[DIK_D])
 	{
-		player.pos.x += player.speed;
+		player.direction.x = 1.0f;
 	}
 
 	if (keys[DIK_A])
 	{
-		player.pos.x -= player.speed;
+		player.direction.x = -1.0f;
 	}
+
+	player.pos.x += player.direction.x * player.speed;
 }
 
 void Jump(Charactor& player,char* keys,char* preKeys) //プレイヤージャンプ
@@ -64,29 +69,28 @@ void Jump(Charactor& player,char* keys,char* preKeys) //プレイヤージャン
 		player.velocity = -player.jumpPower;
 		player.isJump = true;
 	}
-	
-	player.velocity += player.gravity;
-	player.pos.y += player.velocity;
-
-	if (player.pos.y + player.radius >= 500)
-	{
-		player.pos.y = 500 - player.radius;
-		player.isJump = false;
-		player.velocity = 0.0f;
-	}
-	
 }
 
 void MoveRange(Charactor& player) //プレイヤーの横移動範囲
 {
-	if (player.pos.x - player.radius <= 0.0f)
+	player.velocity += player.gravity;
+	player.pos.y += player.velocity;
+
+	if (player.pos.y + player.radius.y >= 600.0f)
 	{
-		player.pos.x = 0 + player.radius;
+		player.pos.y = 600.0f - player.radius.y;
+		player.isJump = false;
+		player.velocity = 0.0f;
 	}
 
-	if (player.pos.x + player.radius >= 1280.0f)
+	if (player.pos.x - player.radius.x <= 0.0f)
 	{
-		player.pos.x = 1280.0f - player.radius;
+		player.pos.x = 0 + player.radius.x;
+	}
+
+	if (player.pos.x + player.radius.x >= 1280.0f)
+	{
+		player.pos.x = 1280.0f - player.radius.x;
 	}
 }
 
@@ -151,7 +155,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.pos.y = 300.0f;
 	player.wide = 128.0f;
 	player.height = 128.0f;
-	player.radius = 64.0f;
+	player.radius.x = 32.0f;
+	player.radius.y = 64.0f;
 	player.speed = 6.0f;
 	player.velocity = 0.0f;
 	player.gravity = 0.7f;
@@ -160,6 +165,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.hp = 5;
 	player.isJump = false;
 	player.isCanShot = false;
+
+	enum PlayerDirection
+	{
+		FRONT,
+		BACK,
+	};
+
+	PlayerDirection playerDirection = FRONT;
+
+	int playerFrontGraph = Novice::LoadTexture("./image/playerFront.png");
+	int playerBackGraph = Novice::LoadTexture("./image/playerBack.png");
 
 	//衝撃波の変数　初期化
 	for (int i = 0; i < 3; i++)
@@ -172,15 +188,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 	Charactor enemy;
-	enemy.pos.x = 200.0f;
-	enemy.pos.y = 700.0f;
-	enemy.radius = 64.0f;
+	enemy.pos.x = 1000.0f;
+	enemy.pos.y = 300.0f;
+	enemy.radius.x = 64.0f;
+	enemy.radius.y = 64.0f;
 	enemy.speed = 6.0f;
 	enemy.gravity = 0.7f;
+	enemy.velocity = 0.0f;
 	enemy.shotCoolTime = 60;
 	enemy.hp = 5;
 	enemy.action = false;
 	enemy.isCanShot = false;
+	enemy.isAlive = true;
+
+	int enemyGraph = Novice::LoadTexture("./image/enemy.png");
 
 	enum BossAction 
 	{
@@ -190,7 +211,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		BLOW,  //パンチ・キック
 	};
 
-	BossAction bossAction = MOVE;
+	//BossAction bossAction = MOVE;
 
 	unsigned int currentTime = static_cast<int>(time(nullptr));
 	srand(currentTime);
@@ -210,6 +231,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 		// 左右移動
 		CharactorMove(player,keys); 
+
+		if (keys[DIK_D])
+		{
+			playerDirection = FRONT;
+		}
+
+		if (keys[DIK_A])
+		{
+			playerDirection = BACK;
+		}
 
 		// プレイヤーのジャンプ
 		Jump(player,keys,preKeys); 
@@ -243,6 +274,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		//プレイヤーの横移動範囲
 		MoveRange(player); 
+		MoveRange(enemy);
 
 		Novice::ScreenPrintf(10, 20, "%d", player.shotCoolTime);
 
@@ -255,7 +287,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius, (int)player.radius, 0.0f, RED, kFillModeSolid);;
+
+		if (player.isAlive)
+		{
+			switch (playerDirection)
+			{
+			case FRONT:
+				Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerFrontGraph, 1, 1, 0.0f, WHITE);
+				break;
+			case BACK:
+				Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerBackGraph, 1, 1, 0.0f, WHITE);
+				break;
+			}
+		}
+
+		Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y , (int)player.radius.x, (int)player.radius.y, 0.0f, BLUE, kFillModeWireFrame);
+
+		Novice::DrawEllipse((int)player.pos.x , (int)player.pos.y,3, 3, 0.0f, RED, kFillModeWireFrame);
+
+		if (enemy.isAlive)
+		{
+			Novice::DrawSprite((int)enemy.pos.x - (int)enemy.radius.x, (int)enemy.pos.y - (int)enemy.radius.y, enemyGraph, 1, 1, 0.0f, WHITE);
+		}
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -266,6 +319,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			Novice::ScreenPrintf(10, 40 * i, "%f", playerShockWave[i].isShot);
 		}
+
+		Novice::DrawLine(0, 600, 1280, 600, RED);
 
 		///
 		/// ↑描画処理ここまで
