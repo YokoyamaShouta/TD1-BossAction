@@ -36,6 +36,8 @@ struct  Bullet
 	float wide;
 	float height;
 	float radius;
+	Vector2 leftBottom;
+	Vector2 rightTop;
 	bool isShot;
 	int damege;
 };
