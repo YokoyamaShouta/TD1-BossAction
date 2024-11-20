@@ -21,6 +21,7 @@ struct Charactor
 	float velocity;
 	float gravity;
 	float jumpPower;
+	float directionVecter;
 	bool isJump;
 	bool isCanShot;
 	bool isAction;
@@ -107,10 +108,19 @@ void ShockWave(Charactor& player) //衝撃波の描画
 			playerShockWave[i].isShot = true;
 			playerShockWave[i].pos.x = player.pos.x;
 			playerShockWave[i].pos.y = player.pos.y;
+			playerShockWave[i].direction.x = player.directionVecter;
 			playerShockWave[i].radius = 8.0f;
 			playerShockWave[i].damege = 1;
 			break;
 		}
+	}
+}
+
+void MoveShockWave()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		playerShockWave[i].pos.x += playerShockWave[i].direction.x * playerShockWave[i].speed;
 	}
 }
 
@@ -158,10 +168,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.velocity = 0.0f;
 	player.gravity = 0.7f;
 	player.jumpPower = 18.0f;
+	player.direction.x = 0.0f;
+	player.directionVecter = 1.0f;
 	player.shotCoolTime = 60;
 	player.hp = 5;
 	player.isJump = false;
 	player.isCanShot = false;
+
+	int playerMoveFlameCount = 0;
+	int playerMoveFlameNumber = 0;
 
 	enum PlayerDirection
 	{
@@ -170,10 +185,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	PlayerDirection playerDirection = FRONT;
-	PlayerDirection enemyDirection = FRONT;
+	PlayerDirection playerMoveDirection = FRONT;
 
+	//画像
+	
+	//向き
 	int playerFrontGraph = Novice::LoadTexture("./image/playerFront.png");
 	int playerBackGraph = Novice::LoadTexture("./image/playerBack.png");
+	//歩いている
+	int playerMoveFrontGraph = Novice::LoadTexture("./image/playerMoveFront.png");
+	int playerMoveBackGraph = Novice::LoadTexture("./image/playerMoveBack.png");
+
 
 	//衝撃波の変数　初期化
 	for (int i = 0; i < 3; i++)
@@ -201,6 +223,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.isAction = false;
 	enemy.isCanShot = false;
 	enemy.isAlive = true;
+
+	/*int enemyMoveCount = 0;
+	int enemyMoveGraphCount = 0;*/
+
+	PlayerDirection enemyDirection = FRONT;
 
 	int enemyBackGraph = Novice::LoadTexture("./image/enemyBack.png");
 	int enemyFrontGraph = Novice::LoadTexture("./image/enemyFront.png");
@@ -236,24 +263,40 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		if (keys[DIK_D])
 		{
-			playerDirection = FRONT;
-			for (int i = 0; i < 3; i++)
-			{
-				playerShockWave[i].direction.x = 1.0f;
-			}
+			player.directionVecter = 1.0f;
+			player.direction.x = 1.0f;
+			playerDirection = FRONT;		
+			playerMoveDirection = FRONT;
 		}
 
 		if (keys[DIK_A])
 		{
+			player.directionVecter = -1.0f;
+			player.direction.x = -1.0f;
 			playerDirection = BACK;
-			for (int i = 0; i < 3; i++)
-			{
-				playerShockWave[i].direction.x = -1.0f;
-			}
+			playerMoveDirection = BACK;
+		}
+
+		if (keys[DIK_A] || keys[DIK_D])
+		{
+			GraphAnimation(playerMoveFlameCount, playerMoveFlameNumber, 4);
 		}
 
 		// プレイヤーのジャンプ
 		Jump(player,keys,preKeys); 
+
+		//衝撃波描画
+		if (player.isCanShot)
+		{
+			if (keys[DIK_Q] && !preKeys[DIK_Q])
+			{
+				ShockWave(player);
+			}
+		}
+
+		//衝撃波の移動
+		MoveShockWave();
+		ShockWaveRange();
 
 		//衝撃波のクールタイム
 		if (player.shotCoolTime >= 0) 
@@ -269,31 +312,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{
 			player.isCanShot = false;
 		}
-
-		//衝撃波描画
-		if (player.isCanShot)
-		{
-			if (keys[DIK_Q] && !preKeys[DIK_Q])
-			{
-				ShockWave(player);
-			}
-		}
-
-		for (int i = 0; i < 3; i++)
-		{
-			if (playerDirection == FRONT)
-			{
-				playerShockWave[i].direction.x = 1.0f;
-			}
-			else
-			{
-				playerShockWave[i].direction.x = -1.0f;
-			}
-		}		
-
-		//衝撃波の移動
-		ShockWaveRange();
-		
+	
 		//敵の向き
 		if (enemy.pos.x >= player.pos.x)
 		{
@@ -362,12 +381,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			switch (playerDirection)
 			{
 			case FRONT:
-				Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerFrontGraph, 1, 1, 0.0f, WHITE);
+				if (!preKeys[DIK_D])
+				{
+					Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerFrontGraph, 1, 1, 0.0f, WHITE);
+				}
 				break;
 			case BACK:
-				Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerBackGraph, 1, 1, 0.0f, WHITE);
+				if (!preKeys[DIK_A])
+				{
+					Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerBackGraph, 1, 1, 0.0f, WHITE);
+				}
 				break;
 			}
+						
+			switch (playerMoveDirection)
+			{
+			case FRONT:
+				if (keys[DIK_D])
+				{
+					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, 128 * playerMoveFlameNumber, 0, 128, 128, playerMoveFrontGraph, 1.0f / 4.0f, 1.0f, 0.0f, WHITE);
+				}
+				break;
+			case BACK:
+				if (keys[DIK_A])
+				{
+					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, 128 * playerMoveFlameNumber, 0, 128, 128, playerMoveBackGraph, 1.0f / 4.0f, 1.0f, 0.0f, WHITE);
+				}
+				break;
+			}	
 		}
 
 		Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y , (int)player.radius.x, (int)player.radius.y, 0.0f, BLUE, kFillModeWireFrame);
