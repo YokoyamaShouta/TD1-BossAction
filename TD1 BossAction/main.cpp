@@ -209,8 +209,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int playerMoveBackGraph = Novice::LoadTexture("./image/playerMoveBack.png");
 	
 	//キック
-	int kickFrontGraph = Novice::LoadTexture("./image/kickFont.png");
-	int kickBackGraph = Novice::LoadTexture("./image/kickBaack.png");
+	/*int kickFrontGraph = Novice::LoadTexture("./image/kickFont.png");
+	int kickBackGraph = Novice::LoadTexture("./image/kickBaack.png");*/
 
 	//衝撃波の変数　初期化
 	const int playerKickCount = 4;
@@ -349,7 +349,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 
 		//衝撃波の移動
-		/*MoveShockWave();*/
+		MoveShockWave();
 		ShockWaveRange();
 
 		//衝撃波のクールタイム
