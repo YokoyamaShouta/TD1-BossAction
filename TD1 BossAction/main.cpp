@@ -15,6 +15,8 @@ struct Charactor
 	Vector2 pos;
 	Vector2 radius;
 	Vector2 direction;
+	Vector2 rightTop;
+	Vector2 leftBottom;
 	float speed;
 	float wide;
 	float height;
