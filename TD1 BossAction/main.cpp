@@ -294,6 +294,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+		aa;
 		//衝撃波の移動
 		MoveShockWave();
 		ShockWaveRange();
