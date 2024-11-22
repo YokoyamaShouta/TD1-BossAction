@@ -33,7 +33,6 @@ struct Charactor
 	int shotCoolTime;
 	int hp;
 	int damege;
-	int animationFlameCount;
 	int flameNumber;
 };
 
@@ -209,8 +208,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int playerMoveBackGraph = Novice::LoadTexture("./image/playerMoveBack.png");
 	
 	//キック
-	/*int kickFrontGraph = Novice::LoadTexture("./image/kickFont.png");
-	int kickBackGraph = Novice::LoadTexture("./image/kickBaack.png");*/
+	//int kickFrontGraph = Novice::LoadTexture("./image/kickFont.png");
+	//int kickBackGraph = Novice::LoadTexture("./image/kickBaack.png");
 
 	//衝撃波の変数　初期化
 	const int playerKickCount = 4;
@@ -228,6 +227,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		playerKick[i].leftBottom.x = 0.0f;
 		playerKick[i].leftBottom.y = 0.0f;
 	}
+	int kickRadiusAdd = 0;
 
 	Charactor enemy;
 	enemy.pos.x = 700.0f;
@@ -318,35 +318,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{
 			if (keys[DIK_Q])
 			{
+				if (player.directionVecter > 0)
+				{
 
+				}
 			}
-
-			if (!preKeys[DIK_Q])
+			else
 			{
 				ShockWave(player);
-			}
+			}				
 		}
-
-		for (int i = 0; i < playerKickCount; i++)
-		{
-			if (keys[DIK_UP])
-			{
-				playerKick[i].pos.y -= playerKick[i].speed;
-			}
-			if (keys[DIK_DOWN])
-			{
-				playerKick[i].pos.y += playerKick[i].speed;
-			}
-			if (keys[DIK_RIGHT])
-			{
-				playerKick[i].pos.x += playerKick[i].speed;
-			}
-			if (keys[DIK_LEFT])
-			{
-				playerKick[i].pos.x -= playerKick[i].speed;
-			}
-		}
-		
 
 		//衝撃波の移動
 		MoveShockWave();
