@@ -180,7 +180,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.pos.y = 300.0f;
 	player.wide = 128.0f;
 	player.height = 128.0f;
-	player.radius.x = 32.0f;
+	player.radius.x = 25.0f;
 	player.radius.y = 64.0f;
 	player.speed = 6.0f;
 	player.velocity = 0.0f;
@@ -680,15 +680,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 			}
 
-			if (player.isAction2)
+			if (player.isAction2) // 二回目のパンチ
 			{
 				switch (playerDirection)
 				{
 				case FRONT:					
-					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, ((4 + playerBlowFlameNumber) * 128), 0, 128, 128, playerBlowFrontGraph, 1 / 6.0f, 1, 0.0f, WHITE);
+					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, (4 + playerBlowFlameNumber) * 128, 0, 128, 128, playerBlowFrontGraph, 1 / 6.0f, 1, 0.0f, WHITE);
 					break;
 				case BACK:
-					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, 0, 0, 128, 128, playerBlowBackGraph, 1 / 6.0f, 1, 0.0f, WHITE);
+					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, (4 + playerBlowFlameNumber) * 128, 0, 128, 128, playerBlowBackGraph, 1 / 6.0f, 1, 0.0f, WHITE);
 					break;
 				default:
 					break;
