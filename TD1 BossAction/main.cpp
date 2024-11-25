@@ -51,6 +51,7 @@ struct  Bullet
 };
 
 //関数作成
+aaaaaaaaa
 
 void CharactorMove(Charactor& player, char* keys) //プレイヤー移動
 {
