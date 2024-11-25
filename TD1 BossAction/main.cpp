@@ -1,6 +1,7 @@
 #include <Novice.h>
 #include <time.h>
 #include <stdlib.h>
+aaaaaa
 
 const char kWindowTitle[] = "TD BossAction";
 
