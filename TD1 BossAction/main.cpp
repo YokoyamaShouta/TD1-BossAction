@@ -2,6 +2,8 @@
 #include <time.h>
 #include <stdlib.h>
 
+aaaaaaaa
+
 const char kWindowTitle[] = "TD BossAction";
 
 struct Vector2
