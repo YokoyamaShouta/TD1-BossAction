@@ -1071,7 +1071,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (enemy.isAlive) {
 
 
-			if (!enemy.isBrow && !enemy.isNone&&!enemy.isDash&&!enemy.isJump) {
+			if (!enemy.isBrow && !enemy.isNone&&!enemy.isJump||enemy.isDash) {
 				switch (enemyDirection)
 				{
 				case FRONT:
