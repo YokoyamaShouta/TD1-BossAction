@@ -56,6 +56,14 @@ struct  Bullet
 	int damage;
 };
 
+struct Effect
+{
+	Vector2 pos;
+	float speed;
+	float radius;
+	
+};
+
 //関数作成
 #pragma region
 
@@ -354,6 +362,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		BLOW,  //パンチ・キック
 	};
 
+	
 
 	BossAction bossAction = MOVE;
 
