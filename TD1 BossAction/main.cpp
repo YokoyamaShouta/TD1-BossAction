@@ -18,14 +18,14 @@ struct Charactor
 	Vector2 rightTop;
 	Vector2 leftBottom;
 	float speed;
-	float dashSpeed;//タマイ
+	float dashSpeed;
 	float wide;
 	float height;
 	float velocity;
 	float gravity;
 	float jumpPower;
 	float directionVecter;
-	float browRange;//タマイ
+	float browRange;
 	bool isPunch;
 	bool isJump;
 	bool isCanShot; //キックしているか
@@ -51,7 +51,8 @@ struct Charactor
 	int punchDamage;
 	int flameNumber;
 	int actionCount;
-	int actionCoolTime;//タマイ
+	int actionCoolTime;
+	int shakes;
 };
 
 struct  Bullet
@@ -73,7 +74,7 @@ struct Effect
 {
 	Vector2 pos;
 	float speed;
-	float radius;	
+	float radius;
 };
 
 //関数作成
@@ -232,9 +233,9 @@ void BackGroundAnimation(int& animationFlameCount, int& flameNunber, int graphSh
 	animationFlameCount++;
 	flameNunber = (animationFlameCount / 10) % graphSheet;
 
-	if (animationFlameCount >= graphSheet * 10)
+	if (animationFlameCount >= 80)
 	{
-		animationFlameCount = graphSheet * 10;
+		animationFlameCount = 80;
 	}
 }
 #pragma endregion 関数
@@ -275,6 +276,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.actionCount = 0;
 	player.kickDamage = 5;
 	player.punchDamage = 4;
+	player.shakes = 0;
 
 	//プレイヤーの四隅
 	player.rightTop.x = 0.0f;
@@ -360,9 +362,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int playerBlowFrontGraph = Novice::LoadTexture("./image/playerActionFront.png");
 	int playerBlowBackGraph = Novice::LoadTexture("./image/playerActionBack.png");
 
-
 	//背景
 	int backgroundGraph = Novice::LoadTexture("./image/background.png");
+
+	//タイトル画面
+	/*int titleBackgroundGraph = Novice::LoadTexture("./image/titleBackground.png");*/
+
+	//ゲームオーバー画面
+	int gameOverGraph = Novice::LoadTexture("./image/gameOver.png");
+
+	//クリア画面
+	int gameClearGraph = Novice::LoadTexture("./image/Clear.png");
+
+	//タイトル文字
+	int titleLetterGraph = Novice::LoadTexture("./image/titleLetter.png");
+
+
+	//BGM,SE
+
+	//プレイヤーが攻撃を当てたとき
+	int playerBlowBgmHandle = Novice::LoadAudio("./image/se_damage12.mp3");
+
+	//int playerBlowPlayHandle = -1;
+
+	
+	//int titleMoveFlameNumber = 0;
+	//int titleMoveFlameCount = 0;
+	int gameOverMoveFlameNumber = 0;
+	int gameOverMoveFlameCount = 0;
+	//int gameClearMoveFlameNumber = 0;
 
 	//衝撃波の変数　初期化
 	const int playerKickCount = 4;
@@ -417,6 +445,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.browRange = 90;
 	enemy.kickDamage = 5;
 	enemy.punchDamage = 4;
+	enemy.shakes = 0;
+
+	int shakesPlus = 21;
+	int shakesMinus = 10;
 
 	//敵の四隅
 	enemy.rightTop.x = 0.0f;
@@ -451,7 +483,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	isKickEnemy.leftBottom.y = 0.0f;
 
 	//敵の画像切り替えの変数
-	
+
 	//シーン切り替え
 	PlayerDirection enemyDirection = FRONT;
 
@@ -475,6 +507,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int enemyJumpKickBack = Novice::LoadTexture("./image/bossJumpKickBack.png");
 	int enemyJumpKickflameCount = 0;
 	int enemyJumpKickflameNumber = 0;
+
+	//敵がダメージを食らったとき
+	int enemyHitFrontGraph = Novice::LoadTexture("./image/bossHitFront.png");
+	int enemyHitBackGraph = Novice::LoadTexture("./image/bossHitBack.png");
+
 
 	//敵の挙動　種類
 	enum BossAction
@@ -508,8 +545,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
+	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
+	int playAgainGraph = Novice::LoadTexture("./image/playAgain.png");
 
-	SCENE sceneNow = GAMEPLAY;
+	SCENE sceneNow = GAMEEND;
+
+	int graphPosY = 500;
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -540,7 +582,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case SETUMEI:
 			if (keys[DIK_TAB] && !preKeys[DIK_TAB])
 			{
-				sceneNow = GAMEPLAY;
+				sceneNow = TITLE;
 			}
 
 			break;
@@ -763,7 +805,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						enemy.noneCount = 40;
 						enemy.isNone = false;
 						enemy.isAction = false;
-					}				
+					}
 				}
 
 				if (!enemy.isNone)
@@ -794,7 +836,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						break;
 					}
 				}
-				
+
 				enemy.pos.x += enemy.direction.x * enemy.speed;
 
 				if (!enemy.isMove)
@@ -813,7 +855,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						enemy.isDash = false;
 						enemy.isAction = false;
 					}
-				}	
+				}
 
 				if (enemy.isDash)
 				{
@@ -881,7 +923,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 
 			//敵の攻撃の挙動制限
-		
+
 #pragma region
 
 			//プレイヤー 敵 の横移動範囲
@@ -974,6 +1016,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					player.isAlive && enemy.isAlive
 					)
 				{
+					if (!Novice::IsPlayingAudio(playerBlowBgmHandle)) {
+						playerBlowBgmHandle= Novice::PlayAudio(playerBlowBgmHandle, false, 1.0f);
+					}
 					enemy.isAlive = false;
 					enemy.hp -= player.punchDamage;
 				}
@@ -1038,6 +1083,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			{
 				player.rivivalTime++;
 
+
+				//シェイク
+				player.shakes = (rand() % shakesPlus - shakesMinus);
+
+				shakesPlus -= 2;
+				shakesMinus -= 1;
+
+				if (shakesPlus == 0 || shakesMinus == 0) {
+
+					shakesPlus = 41;
+					shakesMinus = 20;
+				}
+				//
+
 				if (player.rivivalTime >= 20)
 				{
 					player.isAlive = true;
@@ -1058,17 +1117,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			break;
 		case GAMEEND:
-			
+
+			BackGroundAnimation(gameOverMoveFlameCount, gameOverMoveFlameNumber, 9);
+
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = TITLE;
 			}
+
 			break;
 		case GAMECLEAR:
+
+			/*GraphAnimation(titleMoveFlameCount, titleMoveFlameNumber, 30);*/
+
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = TITLE;
 			}
+
 			break;
 		}
 
@@ -1083,6 +1149,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNow)
 		{
 		case TITLE:
+
+			Novice::DrawSprite(0, 0, titleGraph, 1, 1, 0.0f, WHITE);
+
+			/*Novice::DrawSpriteRect(0, 0, 1280 * titleMoveFlameNumber, 0, 1280, 720, titleBackgroundGraph, 1.0f / 30.0f, 1.0f, 0.0f, WHITE);*/
+			Novice::DrawSprite(-40, 100, titleLetterGraph, 1, 1, 0.0f, WHITE);
+
 			break;
 		case SETUMEI:
 			Novice::DrawSprite(0, 0, setumeiGraph, 1.0f, 1.0f, 0.0f, WHITE);
@@ -1200,10 +1272,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				switch (playerDirection)
 				{
 				case FRONT:
-					Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerHitFrontGraph, 1, 1, 0.0f, WHITE);
+					Novice::DrawSprite((int)player.pos.x - (int)player.radius.y + player.shakes, (int)player.pos.y - (int)player.radius.y + player.shakes, playerHitFrontGraph, 1, 1, 0.0f, WHITE);
+					Novice::DrawEllipse((int)player.pos.x + player.shakes, (int)player.pos.y+ player.shakes, (int)player.radius.x, (int)player.radius.y, 0.0f, RED, kFillModeWireFrame);
 					break;
 				case BACK:
 					Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerHitBackGraph, 1, 1, 0.0f, WHITE);
+					Novice::DrawEllipse((int)player.pos.x + player.shakes, (int)player.pos.y + player.shakes, (int)player.radius.x, (int)player.radius.y, 0.0f, RED, kFillModeWireFrame);
 					break;
 				}
 			}
@@ -1222,7 +1296,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			{
 				switch (bossAction)
 				{
-				case NONE:				
+				case NONE:
 					switch (enemyDirection)
 					{
 					case FRONT:
@@ -1279,8 +1353,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, enemyBlowFlameNumber * 128, 0, 128, 128, enemyBlowBackGraph, 1.0f / 2.0f, 1, 0.0f, WHITE);
 						break;
 					}
+				}
+			}
+			else {
+
+				switch (enemyDirection)
+				{
+				case FRONT:
+					Novice::DrawSprite((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, enemyHitFrontGraph, 1, 1, 0.0f, WHITE);
+					break;
+				case BACK:
+					Novice::DrawSprite((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, enemyHitBackGraph, 1, 1, 0.0f, WHITE);
 					break;
 				}
+
 			}
 			Novice::DrawBox(80, 30, player.hp * 16, 20, 0.0f, 0xff000085, kFillModeSolid);
 			Novice::DrawBox(700, 30, enemy.hp * 8, 20, 0.0f, 0xff000085, kFillModeSolid);
@@ -1289,21 +1375,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			
 			Novice::ScreenPrintf(10, 40, "%d", enemy.actionJudge);
 			Novice::ScreenPrintf(10, 80, "%d", enemy.jumpCount);
-			Novice::ScreenPrintf(10,120, "move %d", enemy.moveCount);
+			Novice::ScreenPrintf(10, 120, "move %d", enemy.moveCount);
 			Novice::ScreenPrintf(10, 140, "none %d", enemy.noneCount);
 			Novice::ScreenPrintf(10, 160, "punch %d", enemy.punchCount);
 			Novice::ScreenPrintf(10, 180, "kick %d", enemy.kickCount);
 
 			break;
 		case GAMEEND:
+
+			Novice::DrawSpriteRect(0, 0, 1280 * gameOverMoveFlameNumber, 0, 1280, 720, gameOverGraph, 1.0f / 9.0f, 1.0f, 0.0f, WHITE);
+
+			/*if (gameOverMoveFlameNumber >= 90) {
+				gameOverMoveFlameNumber = 90;
+			}*/
+
+				if (graphPosY >= 200)
+				{
+					graphPosY--;
+					Novice::DrawSprite(0, graphPosY, playAgainGraph, 1.0f, 1.0f, 0.0f, WHITE);
+				}
+			
+				if (graphPosY <= 200)
+				{
+					graphPosY = 200;
+				}
+			Novice::ScreenPrintf(10, 10, "%d", graphPosY);
+
 			break;
 		case GAMECLEAR:
+			Novice::DrawBox(0, 0, 1280, 720, 0.0f, 0xFFFFFFFF, kFillModeSolid);
+			Novice::DrawSprite(0, 0, gameClearGraph, 1, 1, 0.0f, WHITE);
+			Novice::DrawSprite(0, 300, playAgainGraph, 1.0f, 1.0f, 0.0f, WHITE);
+			break;
+
 			break;
 		default:
 			break;
 		}
 
-		
+
 		///
 		/// ↑描画処理ここまで
 		///
