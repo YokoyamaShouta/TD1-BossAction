@@ -606,7 +606,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		MoveShockWave();
 		ShockWaveRange();
 
-
 		//衝撃波のクールタイム
 		if (player.shotCoolTime >= 0)
 		{
@@ -769,7 +768,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		//当たり判定
-
+		
 		//弾の左下、右上の座標
 		for (int i = 0; i < playerKickCount; i++)
 		{
