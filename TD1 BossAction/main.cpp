@@ -754,6 +754,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		case NONE:
 			enemy.isNone = true;
+
 			break;
 		case MOVE:
 
