@@ -677,16 +677,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				GraphAnimation(enemyrMoveFlameCount, enemyMoveFlameNumber, 2);	//スプレットシートを動かす関数　使用
 			}
 
-			//敵の向き
-			if (enemy.pos.x >= player.pos.x)
-			{
-				enemyDirection = BACK;
-			}
-			else
-			{
-				enemyDirection = FRONT;
-			}
-
 			//敵の攻撃 決める
 			if (!enemy.isAction)
 			{
