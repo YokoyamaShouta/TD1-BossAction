@@ -207,7 +207,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.rivivalTime = 10;
 	player.actionCount = 0;
 	player.kickDamage = 5;
-	player.punchDamage = 2;
+	player.punchDamage = 4;
 
 	//プレイヤーの四隅
 	player.rightTop.x = 0.0f;
@@ -321,7 +321,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.gravity = 0.7f;
 	enemy.velocity = 0.0f;
 	enemy.shotCoolTime = 60;
-	enemy.hp = 100; //HP
+	enemy.hp = 60; //HP
 	enemy.actionJudge = 0;
 	enemy.isAction = false;
 	enemy.isCanShot = false;
@@ -446,7 +446,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		//パンチ キック
-		if (keys[DIK_Q] && !preKeys[DIK_Q] && !player.isJump && !player.isStore)
+		if (keys[DIK_Q] && !preKeys[DIK_Q] && !player.isJump && !player.isStore && !player.isAction2)
 		{
 			playerPunchKeyCount += 1;
 			player.isAction = true;
