@@ -548,7 +548,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
 	int playAgainGraph = Novice::LoadTexture("./image/playAgain.png");
 
-	SCENE sceneNow = TITLE;
+	SCENE sceneNow = GAMEPLAY;
 
 	int graphPosY = 500;
 
