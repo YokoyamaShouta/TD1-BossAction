@@ -26,6 +26,7 @@ struct Charactor
 	float jumpPower;
 	float directionVecter;
 	float browRange;//タマイ
+	bool isBrow;
 	bool isJump;
 	bool isCanShot; //キックしているか
 	bool isAction; //パンチ
@@ -98,12 +99,10 @@ void Jump(Charactor& player, char* keys, char* preKeys) //プレイヤージャ�
 			player.isJump = true;
 		}
 	}
-
 }
 
 void enemyJump(Charactor& enemy) //敵ジャンプ
 {
-
 	enemy.velocity = -enemy.jumpPower;
 	enemy.isJump = true;
 
@@ -113,7 +112,6 @@ void enemyJump(Charactor& enemy) //敵ジャンプ
 		enemy.isJump = false;
 		enemy.velocity = 0.0f;
 	}
-
 }
 
 void MoveRange(Charactor& player) //プレイヤーの横移動範囲
@@ -186,22 +184,15 @@ void ShockWaveRange() //衝撃波のfalse
 	}
 }
 
-
 Bullet enemyKick[5];
 void enemyBrow(Charactor& enemy, Charactor& player) {//敵の物理攻撃
 
 	if (enemy.pos.x >= player.pos.x) {
 		enemy.pos.x += -1.5f;
-		/*enemy.browRange--;*/
-
 	}
 	else {
 		enemy.pos.x += 1.5f;
-		/*enemy.browRange--;*/
 	}
-	/*if (enemy.browRange == 0) {
-
-	}*/
 	for (int i = 0; i < 5; i++) {
 
 		if (!enemyKick[i].isShot)
@@ -391,11 +382,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.shotCoolTime = 60;
 	enemy.hp = 60; //HP
 	enemy.actionJudge = 0;
+	enemy.isBrow = false;
 	enemy.isAction = false;
 	enemy.isCanShot = false;
 	enemy.isAlive = true;
 	enemy.rivivalTime = 0;
-	enemy.actionCoolTime = 180;
+	enemy.actionCoolTime = 120;
 	enemy.directionVecter = 1.0f;
 	enemy.browRange = 30;
 	enemy.kickDamage = 5;
@@ -415,9 +407,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		enemyKick[i].rightTop.y = 0.0f;
 		enemyKick[i].leftBottom.x = 0.0f;
 		enemyKick[i].leftBottom.y = 0.0f;
-		enemyKick[i].damage = 1;
+		enemyKick[i].damage = 5;
 	}
-
 
 	//敵の四隅
 	enemy.rightTop.x = 0.0f;
@@ -438,6 +429,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	isPunchEnemy.leftBottom.x = 0.0f;
 	isPunchEnemy.leftBottom.y = 0.0f;
 
+	//敵のキック
+	Charactor isKickEnemy;
+	isKickEnemy.pos.x = 0.0f;
+	isKickEnemy.pos.y = 0.0f;
+	isKickEnemy.radius.x = 64.0f;
+	isKickEnemy.radius.y = 30.0f;
+	isKickEnemy.isAction =false;
+
+	//敵がキックしてる時の四隅
+	isKickEnemy.rightTop.x = 0.0f;
+	isKickEnemy.rightTop.y = 0.0f;
+	isKickEnemy.leftBottom.x = 0.0f;
+	isKickEnemy.leftBottom.y = 0.0f;
 
 	//敵の画像切り替えの変数
 	int enemyrMoveFlameCount = 0;
@@ -450,6 +454,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int bossBackGraph = Novice::LoadTexture("./image/bossBack.png");
 	int bossFrontGraph = Novice::LoadTexture("./image/bossFront.png");
 
+	//敵のパンチ
+	int enemyBlowFrontGraph = Novice::LoadTexture("./image/bossKickFront.png");
+	int enemyBlowBackGraph = Novice::LoadTexture("./image/bossKickBack.png");
+
+	//敵のジャンプキック
+	int enemyJumpKickFront = Novice::LoadTexture("./image/bossJumpKickFront.png");
+	int enemyJumpKickBack = Novice::LoadTexture("./image/bossJumpKickBack.png");
+	int enemyJumpKickFlameCount = 0;
+	int enemyJumpKickFlameNumber = 0;
 
 	//敵の挙動　種類
 	enum BossAction
@@ -457,7 +470,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		NONE,//何もしない
 		MOVE, //歩き
 		DASH, //ダッシュ
-		SHOCKWAVE, //衝撃波
+		JUMPKICK, //衝撃波
 		BLOW,  //パンチ・キック
 		ENEMYJANP, //ジャンプ
 	};
@@ -467,11 +480,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	unsigned int currentTime = static_cast<int>(time(nullptr));
 	srand(currentTime);
 
-	Effect hit[4];
+	/*Effect hit[4];
 	for (int i = 0; i < 4; i++)
 	{
 
-	}
+	}*/
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -611,6 +624,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		MoveShockWave();
 		ShockWaveRange();
 
+
 		//衝撃波のクールタイム
 		if (player.shotCoolTime >= 0)
 		{
@@ -655,17 +669,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//敵の攻撃 決める
 		if (!enemy.isAction)
 		{
-			enemy.actionJudge =0 /*static_cast<int>(rand() % 6)*/;
+			enemy.actionJudge = 6 /*static_cast<int>(rand() % 6)*/;
 			enemy.isAction = true;
+		}
+
+		if (enemy.isAction) 
+		{
+			enemy.actionCoolTime--;
+		}
+
+		if (enemy.actionCoolTime <= 0)
+		{
+			enemy.isAction = false;
+			enemy.actionCoolTime = 120;
+
+			if (enemy.isBrow)
+			{
+				enemy.isBrow = false;
+			}
+
+			if (isKickEnemy.isAction)
+			{
+				isKickEnemy.isAction = false;
+			}
 		}
 
 		if (keys[DIK_1])
 		{
 			bossAction = MOVE;
 		}
-		else if (keys[DIK_2])
+		else if (keys[DIK_2] && !preKeys[DIK_2])
 		{
-			bossAction = DASH;
+			bossAction = BLOW;
 		}
 
 		//敵の攻撃を決める	
@@ -675,31 +710,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 		else if (enemy.actionJudge == 2 || enemy.actionJudge == 3)
 		{
-			bossAction = DASH;
+			bossAction = MOVE;
 		}
 		else if (enemy.actionJudge == 4 || enemy.actionJudge == 5)
 		{
-			bossAction = SHOCKWAVE;
+			bossAction = DASH;
 		}
-		else if (enemy.actionJudge == 6) {
+		else if (enemy.actionJudge == 6 || enemy.actionJudge == 7) {
+			bossAction = JUMPKICK;
+		}
+		else if (enemy.actionJudge == 8 || enemy.actionJudge == 9) {
 			bossAction = ENEMYJANP;
 		}
+
 		//ボスがプレイヤーに近いなら、殴りながら近づいて来る
-		if (enemy.pos.x + enemy.browRange == player.pos.x && enemy.direction.x == 1.0f) {
+	/*	if (enemy.pos.x + enemy.browRange >= player.pos.x && enemy.direction.x == 1.0f) {
 			bossAction = BLOW;
 		}
-		else if (enemy.pos.x - enemy.browRange == player.pos.x && enemy.direction.x == -1.0f)
-		{
+		else if (enemy.pos.x - enemy.browRange <= player.pos.x && enemy.direction.x == -1.0f) {
 			bossAction = BLOW;
-		}
+		}*/
 
 		//敵の攻撃の挙動制限
 		switch (bossAction){
 
-
 		case NONE:
-			enemy.direction.x = 0.0f;
 
+			if (enemy.pos.x >= player.pos.x) {
+				enemy.direction.x = -1.0f;
+			}
+			else {
+				enemy.direction.x = 1.0f;
+			}
 
 			break;
 		case MOVE:
@@ -711,15 +753,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				enemy.direction.x = 1.0f;
 			}
 
-			enemy.actionCoolTime--;
-
-			if (enemy.actionCoolTime == 0) {
-				enemy.isAction = false;
-				enemy.actionCoolTime = 120;
-			}
-
 			enemy.pos.x += enemy.direction.x * enemy.speed;
-
 
 			break;
 		case DASH:
@@ -730,46 +764,49 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			else {
 				enemy.direction.x = 1.0f;
 			}
-			enemy.actionCoolTime--;
-
-			if (enemy.actionCoolTime == 0) {
-				enemy.actionCoolTime = 120;
-				enemy.isAction = false;
-			}
 
 			enemy.pos.x += enemy.direction.x * enemy.dashSpeed;
 
 			break;
-		case SHOCKWAVE:
+		case JUMPKICK:
 
-			enemyBrow(enemy, player);
+			isKickEnemy.isAction = true;
 
-			enemy.actionCoolTime--;
-
-			if (enemy.actionCoolTime == 0) {
-				enemy.actionCoolTime = 120;
-				enemy.isAction = false;
+			switch (enemyDirection)
+			{
+			case FRONT:
+				enemy.direction.x = 1.0f;
+				break;
+			case BACK:
+				enemy.direction.x = -1.0f;
+				break;
 			}
+
+			GraphAnimation(enemyJumpKickFlameCount, enemyJumpKickFlameNumber, 2);
 
 			break;
 		case BLOW:
 
-			enemy.isAction = true;
-
-			if (enemy.isAction) {
-
-
+			enemy.isBrow = true;
+			if (enemy.pos.x >= player.pos.x) {
+				enemy.direction.x = -1.0f;
 			}
+			else {
+				enemy.direction.x = 1.0f;
+			}
+
 			break;
 		case ENEMYJANP:
+
 			enemyJump(enemy);
 
-			enemy.actionCoolTime--;
-
-			if (enemy.actionCoolTime == 0) {
-				enemy.actionCoolTime = 120;
-				enemy.isAction = false;
+			if (enemy.pos.x >= player.pos.x) {
+				enemy.direction.x = 0.0f;
 			}
+			else {
+				enemy.direction.x = 0.0f;
+			}
+
 			break;
 		}
 
@@ -788,12 +825,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			playerKick[i].leftBottom.y = playerKick[i].pos.y + playerKick[i].radius;
 		}
 
-		//敵の左下、右上の座標
-		enemy.rightTop.x = enemy.pos.x + enemy.radius.x;
-		enemy.rightTop.y = enemy.pos.y - enemy.radius.y;
-		enemy.leftBottom.x = enemy.pos.x - enemy.radius.x;
-		enemy.leftBottom.y = enemy.pos.y + enemy.radius.y;
-
 		//プレイヤーの左下、右上の座標
 		player.rightTop.x = player.pos.x + player.radius.x;
 		player.rightTop.y = player.pos.y - player.radius.y;
@@ -802,24 +833,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		//パンチしてるときのプレイヤーの四隅
 		isPunchPlayer.rightTop.x = player.pos.x + isPunchPlayer.radius.x;
-		isPunchPlayer.rightTop.x = player.pos.x + isPunchPlayer.radius.x;
 		isPunchPlayer.rightTop.y = player.pos.y - isPunchPlayer.radius.y;
 		isPunchPlayer.leftBottom.x = player.pos.x - isPunchPlayer.radius.x;
 		isPunchPlayer.leftBottom.y = player.pos.y + isPunchPlayer.radius.y;
 
 		//キックしているときのプレイヤーの四隅
 		isKickPlayer.rightTop.x = player.pos.x + isKickPlayer.radius.x;
-		isKickPlayer.rightTop.x = player.pos.x + isKickPlayer.radius.x;
 		isKickPlayer.rightTop.y = player.pos.y - isKickPlayer.radius.y;
 		isKickPlayer.leftBottom.x = player.pos.x - isKickPlayer.radius.x;
 		isKickPlayer.leftBottom.y = player.pos.y + isKickPlayer.radius.y;
 
+		//敵の四隅
+		
+		//敵の左下、右上の座標
+		enemy.rightTop.x = enemy.pos.x + enemy.radius.x;
+		enemy.rightTop.y = enemy.pos.y - enemy.radius.y;
+		enemy.leftBottom.x = enemy.pos.x - enemy.radius.x;
+		enemy.leftBottom.y = enemy.pos.y + enemy.radius.y;
+
 		//パンチしてるときのenemyの四隅
-		isPunchEnemy.rightTop.x = enemy.pos.x + isPunchEnemy.radius.x;
 		isPunchEnemy.rightTop.x = enemy.pos.x + isPunchEnemy.radius.x;
 		isPunchEnemy.rightTop.y = enemy.pos.y - isPunchEnemy.radius.y;
 		isPunchEnemy.leftBottom.x = enemy.pos.x - isPunchEnemy.radius.x;
 		isPunchEnemy.leftBottom.y = enemy.pos.y + isPunchEnemy.radius.y;
+
+		//キックしている敵の四隅
+		isKickEnemy.rightTop.x = enemy.pos.x + isKickEnemy.radius.x;
+		isKickEnemy.rightTop.y = enemy.pos.y - isKickEnemy.radius.y;
+		isKickEnemy.leftBottom.x = enemy.pos.x - isKickEnemy.radius.x;
+		isKickEnemy.leftBottom.y = enemy.pos.y + isKickEnemy.radius.y;
 
 		//弾と敵の当たり判定（矩形）
 		for (int i = 0; i < playerKickCount; i++)
@@ -864,21 +906,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
-		//パンチしているときのplayerとの当たり判定(敵目線)
-		if (enemy.isAction)
-		{
-			if (isPunchEnemy.rightTop.x > player.leftBottom.x &&
-				isPunchEnemy.leftBottom.x < player.rightTop.x &&
-				isPunchEnemy.rightTop.y < player.leftBottom.y &&
-				isPunchEnemy.leftBottom.y > player.rightTop.y &&
-				enemy.isAlive && player.isAlive
-				)
-			{
-				player.isAlive = false;
-				player.hp -= enemy.punchDamage;
-			}
-		}
-
 		//キックしているときの敵との当たり判定
 		if (isKickPlayer.rightTop.x > enemy.leftBottom.x &&
 			isKickPlayer.leftBottom.x < enemy.rightTop.x &&
@@ -892,11 +919,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			enemy.hp -= player.kickDamage;
 		}
 
-		if (isPunchPlayer.isHit)
+		//ここから敵からプレイヤー
+		//パンチしているときのplayerとの当たり判定(敵目線)
+		if (enemy.isBrow)
 		{
+			if (isPunchEnemy.rightTop.x > player.leftBottom.x &&
+				isPunchEnemy.leftBottom.x < player.rightTop.x &&
+				isPunchEnemy.rightTop.y < player.leftBottom.y &&
+				isPunchEnemy.leftBottom.y > player.rightTop.y &&
+				enemy.isAlive && player.isAlive
+				)
+			{
+				player.isAlive = false;
+				player.hp -= enemy.punchDamage;
+			}
+		}	
 
+		if (isKickEnemy.isAction)
+		{
+			if (isKickEnemy.rightTop.x > player.leftBottom.x &&
+				isKickEnemy.leftBottom.x < player.rightTop.x &&
+				isKickEnemy.rightTop.y < player.leftBottom.y &&
+				isKickEnemy.leftBottom.y > player.rightTop.y &&
+				enemy.isAlive && player.isAlive
+				)
+			{
+				player.isAlive = false;
+				player.hp -= enemy.punchDamage;
+			}
 		}
-
 		//復活　
 		//敵
 		if (!enemy.isAlive)
@@ -921,8 +972,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				player.rivivalTime = 0;
 			}
 		}
-
-		
 
 		///
 		/// ↑更新処理ここまで
@@ -1059,22 +1108,55 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
-		if (enemy.isAlive)
-		{
-			switch (enemyDirection)
+		//敵
+		if (enemy.isAlive) {
+			if (!enemy.isBrow && !isKickEnemy.isAction)
 			{
-			case FRONT:
-				Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128 * enemyMoveFlameNumber, 0, 128, 128, bossFrontGraph, 1.0f / 2.0f, 1.0f, 0.0f, WHITE);
-				break;
-			case BACK:
-				Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128 * enemyMoveFlameNumber, 0, 128, 128, bossBackGraph, 1.0f / 2.0f, 1.0f, 0.0f, WHITE);
-				break;
+				switch (enemyDirection)
+				{
+				case FRONT:
+					Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128 * enemyMoveFlameNumber, 0, 128, 128, bossFrontGraph, 1.0f / 4.0f, 1.0f, 0.0f, WHITE);
+					break;
+				case BACK:
+					Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128 * enemyMoveFlameNumber, 0, 128, 128, bossBackGraph, 1.0f / 4.0f, 1.0f, 0.0f, WHITE);
+					break;
+				}
 			}
+				
+			if (isKickEnemy.isAction)
+			{
+				switch (enemyDirection)
+				{
+				case FRONT:
+					Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128 * enemyJumpKickFlameNumber, 0, 128, 128, enemyJumpKickFront, 1 / 2.0f, 1, 0.0f, WHITE);
+					break;
+				case BACK:
+					Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128 * enemyJumpKickFlameNumber, 0, 128, 128, enemyJumpKickBack, 1 / 2.0f, 1, 0.0f, WHITE);
+					break;
+				}
+			}	
+
+			if (enemy.isBrow)
+			{
+				switch (enemyDirection)
+				{
+				case FRONT:
+					Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128, 0, 128, 128, enemyBlowFrontGraph, 1 / 2.0f, 1, 0.0f, WHITE);
+					break;
+				case BACK:
+					Novice::DrawSpriteRect((int)enemy.pos.x - (int)enemy.radius.y, (int)enemy.pos.y - (int)enemy.radius.y, 128, 0, 128, 128, enemyBlowBackGraph, 1 / 2.0f, 1, 0.0f, WHITE);
+					break;
+				}
+			}		
 		}
 		Novice::DrawBox(80, 30, player.hp * 16 , 20, 0.0f, 0xff000085, kFillModeSolid);
 		Novice::DrawBox(700, 30, enemy.hp * 8, 20, 0.0f, 0xff000085, kFillModeSolid);
 		Novice::DrawEllipse((int)enemy.pos.x, (int)enemy.pos.y, (int)enemy.radius.x, (int)enemy.radius.y, 0.0f, RED, kFillModeWireFrame);
 		Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius.x, (int)player.radius.y, 0.0f, RED, kFillModeWireFrame);
+
+		Novice::ScreenPrintf(10, 40, "%d", enemy.actionJudge);
+		
+		Novice::DrawEllipse((int)enemy.pos.x, (int)enemy.pos.y + 15, (int)isKickEnemy.radius.x, (int)isKickEnemy.radius.y, 0.0f, BLUE, kFillModeWireFrame);
 
 		///
 		/// ↑描画処理ここまで
