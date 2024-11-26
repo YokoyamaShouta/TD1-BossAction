@@ -348,6 +348,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int playerMoveFrontGraph = Novice::LoadTexture("./image/playerMoveFront.png");
 	int playerMoveBackGraph = Novice::LoadTexture("./image/playerMoveBack.png");
 
+	//ダメージを受けた時
+	int playerHitFrontGraph = Novice::LoadTexture("./image/playerIsHitFront.png");
+	int playerHitBackGraph = Novice::LoadTexture("./image/playerIsHitBack.png");
+
 	//キック
 	int kickFrontGraph = Novice::LoadTexture("./image/kickFont.png");
 	int kickBackGraph = Novice::LoadTexture("./image/kickBaack.png");
@@ -359,6 +363,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//パンチ
 	int playerBlowFrontGraph = Novice::LoadTexture("./image/playerActionFront.png");
 	int playerBlowBackGraph = Novice::LoadTexture("./image/playerActionBack.png");
+
 
 	//背景
 	int backgroundGraph = Novice::LoadTexture("./image/background.png");
@@ -897,7 +902,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{
 			player.rivivalTime++;
 			
-			if (player.rivivalTime >= 10)
+			if (player.rivivalTime >= 20)
 			{
 				player.isAlive = true;
 				player.rivivalTime = 0;
@@ -1020,6 +1025,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				default:
 					break;
 				}
+			}
+		}
+		else
+		{
+			switch (playerDirection)
+			{
+			case FRONT:
+				Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerHitFrontGraph, 1, 1, 0.0f, WHITE);
+				break;
+			case BACK:
+				Novice::DrawSprite((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerHitBackGraph, 1, 1, 0.0f, WHITE);
+				break;
 			}
 		}
 
