@@ -383,7 +383,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//プレイヤーが攻撃を当てたとき
 	int playerBlowBgmHandle = Novice::LoadAudio("./image/se_damage12.mp3");
 
-	int playerBlowPlayHandle = -1;
+	//int playerBlowPlayHandle = -1;
 
 	
 	//int titleMoveFlameNumber = 0;
@@ -951,12 +951,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					player.isAlive && enemy.isAlive
 					)
 				{
-					if (!Novice::IsPlayingAudio(playerBlowBgmHandle)) {
-						playerBlowBgmHandle= Novice::PlayAudio(playerBlowBgmHandle, false, 1.0f);
-					}
+					
 					enemy.isAlive = false;
 					enemy.hp -= player.punchDamage;
+
 				}
+
+				if (!enemy.isAlive) {
+					if (!Novice::IsPlayingAudio(playerBlowBgmHandle)) {
+						playerBlowBgmHandle = Novice::PlayAudio(playerBlowBgmHandle, false, 0.3f);
+					}
+				}
+				
 			}
 
 			//キックしているときの敵との当たり判定
