@@ -121,7 +121,7 @@ void ShockWave(Charactor& player, Bullet& bullet) //衝撃波の描画
 	{
 		if (!playerKick[i].isShot)
 		{
-			player.shotCoolTime = 10;
+			player.shotCoolTime = 60;
 			playerKick[i].isShot = true;
 			playerKick[i].pos.x = player.pos.x;
 			playerKick[i].pos.y = player.pos.y;
@@ -196,7 +196,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.jumpPower = 18.0f;
 	player.direction.x = 0.0f;
 	player.directionVecter = 1.0f;
-	player.shotCoolTime = 60;
+	player.shotCoolTime = 0;
 	player.hp = 10; //HP
 	player.isJump = false;
 	player.isCanShot = false;
@@ -498,6 +498,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//衝撃波の移動
 		MoveShockWave();
 		ShockWaveRange();
+
+		Novice::ScreenPrintf(800, 10, "%d", player.shotCoolTime);
 
 		//衝撃波のクールタイム
 		if (player.shotCoolTime >= 0) 
