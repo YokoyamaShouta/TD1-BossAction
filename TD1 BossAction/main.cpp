@@ -25,17 +25,18 @@ struct Charactor
 	float jumpPower;
 	float directionVecter;
 	bool isJump;
-	bool isCanShot;
-	bool isAction; 
-	bool isAction2;
-	bool isAlive;
+	bool isCanShot; //キックしているか
+	bool isAction; //パンチ
+	bool isAction2; //パンチ２
+	bool isAlive; 
 	bool isStore; //溜める
 	int rivivalTime;
 	int jumpCount;
 	int actionJudge;
 	int shotCoolTime;
 	int hp;
-	int damege;
+	int kickDamege;
+	int punchDamege;
 	int flameNumber;
 	int actionCount;
 };
@@ -198,6 +199,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.isAction2 = false;
 	player.rivivalTime = 10;
 	player.actionCount = 0;
+	player.kickDamege = 5;
+	player.punchDamege = 2;
 
 	//プレイヤーの四隅
 	player.rightTop.x = 0.0f;
@@ -209,8 +212,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Charactor isPunchPlayer;
 	isPunchPlayer.pos.x = 60.0f;
 	isPunchPlayer.pos.y = 64.0f;
-	isPunchPlayer.radius.x = 0.0f;
-	isPunchPlayer.radius.y = 0.0f;
+	isPunchPlayer.radius.x = 60.0f;
+	isPunchPlayer.radius.y = 64.0f;
 	
 	//パンチしているときの四隅
 	isPunchPlayer.rightTop.x = 0.0f;
@@ -316,7 +319,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	enemy.isAction = false;
 	enemy.isCanShot = false;
 	enemy.isAlive = true;
-	enemy.rivivalTime = 10;
+	enemy.rivivalTime = 0;
 
 	//敵の四隅
 	enemy.rightTop.x = 0.0f;
@@ -397,14 +400,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Jump(player, keys, preKeys);
 		}
 
-		//衝撃波描画
+		//キック
 		if (player.isCanShot)
 		{
 			for (int i = 0; i < playerKickCount; i++)
 			{
 				if (!playerKick[i].isShot)
 				{
-					if (keys[DIK_E])
+					if (keys[DIK_E]) //弾を溜めている
 					{
 						if (playerKickRadius.radiusAdd <= 20)
 						{
@@ -415,7 +418,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 			}
 
-			if (!keys[DIK_E] && preKeys[DIK_E])
+			if (!keys[DIK_E] && preKeys[DIK_E]) //キーを離されたとき　弾を描画する
 			{
 				player.isStore = false;
 				playerIsKick = true;
@@ -433,6 +436,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{
 			playerIsKick = false;
 			playerKickGraphCount = 0;
+		}
+
+		for (int i = 0; i < playerKickCount; i++)
+		{
+			if (playerKick[i].radius <= 10.0f)
+			{
+				playerKick[i].damege = 1;
+			}
+			else if (playerKick[i].radius > 10.0f && playerKick[i].radius <= 15.0f)
+			{
+				playerKick[i].damege = 3;
+			}			
 		}
 
 		//パンチ キック
@@ -484,11 +499,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			playerPunch2Count = 0;
 			playerPunchKeyCount = 0;
 		}
-
-		Novice::ScreenPrintf(10, 40, "punchCount %d", playerNextPunchCount);
-		Novice::ScreenPrintf(10, 70, "1 %d", player.isAction);
-		Novice::ScreenPrintf(10, 90, "2 %d", player.isAction2);
-		Novice::ScreenPrintf(10, 120,"punch2Count %d", playerPunch2Count);
 
 		//衝撃波の移動
 		MoveShockWave();
@@ -588,6 +598,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		//当たり判定
+		
 		//弾の左下、右上の座標
 		for (int i = 0; i < playerKickCount; i++) 
 		{
@@ -634,6 +645,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				)
 			{
 				enemy.isAlive = false;
+				enemy.hp -= playerKick[i].damege;
 			}
 		}		
 
@@ -646,6 +658,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			)
 		{
 			player.isAlive = false;
+			player.hp -= 1;
+		}
+
+		//パンチしているときの敵との当たり判定
+		if (isPunchPlayer.rightTop.x > enemy.leftBottom.x &&
+			isPunchPlayer.leftBottom.x < enemy.rightTop.x &&
+			isPunchPlayer.rightTop.y < enemy.leftBottom.y &&
+			isPunchPlayer.leftBottom.y > enemy.rightTop.y &&
+			player.isAlive && enemy.isAlive &&
+			player.isAction || player.isAction2
+			)
+		{
+			enemy.isAlive = false;
+			enemy.hp -= player.punchDamege;
+		}
+
+		//キックしているときの敵との当たり判定
+		if (isKickPlayer.rightTop.x > enemy.leftBottom.x &&
+			isKickPlayer.leftBottom.x < enemy.rightTop.x &&
+			isKickPlayer.rightTop.y < enemy.leftBottom.y &&
+			isKickPlayer.leftBottom.y > enemy.rightTop.y &&
+			player.isAlive && enemy.isAlive &&
+			playerIsKick)
+		{
+			enemy.isAlive = false;
+			enemy.hp -= player.kickDamege;
 		}
 
 		//復活　
@@ -761,6 +799,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, 128, 0, 128, 128, kickBackGraph, 1 / 2.0f, 1, 0.0f, WHITE);
 					break;
 				}
+				Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)isKickPlayer.radius.x, (int)isKickPlayer.radius.y, 0.0f, RED, kFillModeWireFrame);
+
 			}	
 
 			if (player.isAction) // パンチ
@@ -774,6 +814,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					Novice::DrawSpriteRect((int)player.pos.x - (int)player.radius.y, (int)player.pos.y - (int)player.radius.y, playerBlowFlameNumber * 128, 0, 128, 128, playerBlowBackGraph, 1 / 6.0f, 1, 0.0f, WHITE);
 					break;
 				}
+				Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)isPunchPlayer.radius.x, (int)isPunchPlayer.radius.y, 0.0f, RED, kFillModeWireFrame);
+
 			}
 
 			if (player.isAction2) // 二回目のパンチ
@@ -789,16 +831,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				default:
 					break;
 				}
+				Novice::DrawEllipse((int)player.pos.x , (int)player.pos.y , (int)isPunchPlayer.radius.x, (int)isPunchPlayer.radius.y, 0.0f, RED, kFillModeWireFrame);
+
 			}
 		}
 
 		//pannti
 		Novice::DrawSpriteRect((int)300 - (int)player.radius.y, (int)200- (int)player.radius.y, 2* 128, 0, 128, 128, playerBlowFrontGraph, 1 / 6.0f, 1, 0.0f, WHITE);
-		Novice::DrawEllipse(300, 200, (int)isPunchPlayer.radius.x, (int)isPunchPlayer.radius.y, 0.0f, RED, kFillModeWireFrame);
 
 		//kikku
 		Novice::DrawSpriteRect((int)700 - (int)player.radius.y, (int)200 - (int)player.radius.y, 128, 0, 128, 128, kickFrontGraph, 1 / 2.0f, 1, 0.0f, WHITE);
-		Novice::DrawEllipse(700, 200, (int)isKickPlayer.radius.x, (int)isKickPlayer.radius.y, 0.0f, RED, kFillModeWireFrame);
 
 
 		for (int i = 0; i < playerKickCount; i++) //キック
@@ -830,8 +872,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Novice::DrawEllipse((int)enemy.pos.x, (int)enemy.pos.y, (int)enemy.radius.x, (int)enemy.radius.y, 0.0f, BLUE, kFillModeWireFrame);
 
+		Novice::ScreenPrintf(10, 40, "punchCount %d", playerNextPunchCount);
+		Novice::ScreenPrintf(10, 70, "1 %d", player.isAction);
+		Novice::ScreenPrintf(10, 90, "2 %d", player.isAction2);
+		Novice::ScreenPrintf(10, 120, "punch2Count %d", playerPunch2Count);
 		Novice::ScreenPrintf(10, 10, "%d", player.jumpCount);
-
 		Novice::ScreenPrintf(500, 10, "radiusAdd %f", playerKickRadius.radiusAdd);
 
 		Novice::DrawLine(0, 600, 1280, 600, RED);
