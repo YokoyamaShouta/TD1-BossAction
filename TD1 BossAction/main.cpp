@@ -1027,9 +1027,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					if (!Novice::IsPlayingAudio(playerBlowPlayHandle)) {
 						playerBlowPlayHandle = Novice::PlayAudio(playerBlowBgmHandle, false, 1.0f);
 					}
-					enemy.isAlive = false;
-					enemy.hp -= player.punchDamage;
 				}
+				
 			}
 
 			//キックしているときの敵との当たり判定
