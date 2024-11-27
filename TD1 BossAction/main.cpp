@@ -854,7 +854,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 
 			//敵の攻撃 決める
-			if (!enemy.isAction && enemy.hp < 0)
+			if (!enemy.isAction)
 			{
 				enemy.actionJudge = static_cast<int>(rand() % 9 + 1) ;
 				enemy.isAction = true;
