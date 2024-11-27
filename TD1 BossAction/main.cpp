@@ -1,6 +1,8 @@
 #include <Novice.h>
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
+
 
 const char kWindowTitle[] = "TD BossAction";
 
@@ -543,12 +545,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		GAMEEND,
 		GAMECLEAR
 	};
+	SCENE sceneNow = TITLE;
 
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
 	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
 	int playAgainGraph = Novice::LoadTexture("./image/playAgain.png");
 
-	SCENE sceneNow = GAMEPLAY;
+
+	int backImg[30];
+	for (int i = 0; i < 30; i++) {
+		char filePath[128];
+		sprintf_s(filePath, "./image/Frame%02d.png", i);
+		backImg[i] = Novice::LoadTexture(filePath);
+	}
+
+	int frameCounter = 0;
+	int lastFrameHoldTime = 600; //
+	int currentFrame = 0;
+	int frameIndex = 0;
+
+
 
 	int graphPosY = 500;
 
@@ -577,6 +593,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (keys[DIK_TAB] && !preKeys[DIK_TAB])
 			{
 				sceneNow = SETUMEI;
+			}
+
+			currentFrame = frameCounter / 5; // 每帧显示5次
+			if (currentFrame >= 29) { // 最后一帧逻辑
+				if (frameCounter < 29 * 5 + lastFrameHoldTime) {
+					frameCounter++;
+				}
+				else {
+					frameCounter = 0; // 循环回到第一帧
+				}
+			}
+			else {
+				frameCounter++;
 			}
 
 			player.pos.x = 200.0f;
@@ -751,30 +780,43 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//敵の攻撃 決める
 			if (!enemy.isAction)
 			{
-				enemy.actionJudge = 1/*static_cast<int>(rand() % 4 + 1)*/;
+				enemy.actionJudge = static_cast<int>(rand() % 9 + 1) ;
 				enemy.isAction = true;
 			}
 			
 			//敵の攻撃を紐づける		
-			if (enemy.actionJudge == 1)
+			if (enemy.actionJudge >= 1 && enemy.actionJudge <= 3)
 			{
 				bossAction = NONE;
 				enemy.isNone = true;
 			}
-			else if (enemy.actionJudge == 2)
+			else if (enemy.actionJudge > 3 && enemy.actionJudge <= 5)
 			{
 				bossAction = MOVE;
 				enemy.isMove = true;
 			}
-			else if (enemy.actionJudge == 3)
+			else if (enemy.actionJudge > 5 && enemy.actionJudge <= 6)
 			{
 				bossAction = DASH;
 				enemy.isDash = true;
 			}
-			else if (enemy.actionJudge == 4)
+			else if (enemy.actionJudge >= 7 && enemy.actionJudge <= 9)
 			{
 				bossAction = JUMPKICK;
-				enemy.isKick = true;
+				if (!enemy.isKick)
+				{
+					enemy.isKick = true;
+
+					if (enemy.pos.x >= player.pos.x)
+					{
+						enemy.direction.x = -4.0f;
+					}
+					else
+					{
+						enemy.direction.x = 4.0f;
+					}					
+					break;
+				}				
 			}
 
 			switch (enemyDirection)
@@ -900,18 +942,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					}
 				}
 
-				if (enemy.isKick)
-				{
-					switch (enemyDirection)
-					{
-					case FRONT:
-						enemy.direction.x = 4.0f;
-					case BACK:
-						enemy.direction.x = -4.0f;
-					}
-					enemy.pos.x += enemy.direction.x * enemy.speed;
-					break;
-				}
+				
+				
+				
+				enemy.pos.x += enemy.direction.x * enemy.speed;
 
 				GraphAnimation(enemyJumpKickflameCount, enemyJumpKickflameNumber, 2);
 				break;
@@ -1024,8 +1058,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					player.isAlive && enemy.isAlive
 					)
 				{
-					player.isAlive = false;
-					player.hp -= enemy.punchDamage;
+					enemy.isAlive = false;
+					enemy.hp -= player.punchDamage;
 					if (!Novice::IsPlayingAudio(playerBlowPlayHandle)) {
 						playerBlowPlayHandle = Novice::PlayAudio(playerBlowBgmHandle, false, 1.0f);
 					}
@@ -1159,7 +1193,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case TITLE:
 
 			Novice::DrawSprite(0, 0, titleGraph, 1, 1, 0.0f, WHITE);
-
+			frameIndex = (currentFrame >= 30) ? 29 : currentFrame; // 确保索引不越界
+			Novice::DrawSprite(0, 0, backImg[frameIndex], 1, 1, 0, WHITE);
 			/*Novice::DrawSpriteRect(0, 0, 1280 * titleMoveFlameNumber, 0, 1280, 720, titleBackgroundGraph, 1.0f / 30.0f, 1.0f, 0.0f, WHITE);*/
 			Novice::DrawSprite(-40, 100, titleLetterGraph, 1, 1, 0.0f, WHITE);
 
@@ -1379,6 +1414,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::DrawBox(80, 30, player.hp * 16, 20, 0.0f, 0xff000085, kFillModeSolid);
 			Novice::DrawBox(700, 30, enemy.hp * 8, 20, 0.0f, 0xff000085, kFillModeSolid);
 		
+			Novice::ScreenPrintf(10, 80, "%d", enemy.kickCount);
 			break;
 		case GAMEEND:
 
