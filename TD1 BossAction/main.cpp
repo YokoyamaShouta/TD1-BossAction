@@ -385,6 +385,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//playのBGM
 	int battleBgmHandle = Novice::LoadAudio("./image/GB-Fighting-B11-1(Stage7).mp3");
 
+	//clearのBGM
+	int clearBgmHandle = Novice::LoadAudio("./image/HAHA.wav");
+
+	//gameoverのBGM
+	int gameOverBgmHandle = Novice::LoadAudio("./image/AAAA.wav");
+
 
 	//プレイヤーが攻撃を当てたとき
 	int playerBlowBgmHandle = Novice::LoadAudio("./image/se_damage12.mp3");
@@ -402,6 +408,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int jumpBgmHandle = Novice::LoadAudio("./image/se_jump1.mp3");
 
 
+
+	int clearPlayHandle = 0;
+	int gameOverPlayHandle = 0;
 	int battlePlayHandle = 0;
 	int playerBlowPlayHandle = 0;
 	int enemyBlowPlayHandle = 0;
@@ -566,7 +575,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		GAMEEND,
 		GAMECLEAR
 	};
-	SCENE sceneNow = TITLE;
+	SCENE sceneNow = GAMECLEAR;
 
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
 	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
@@ -1203,16 +1212,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = TITLE;
+				gameOverPlayHandle = false;
 			}
 
 			break;
 		case GAMECLEAR:
 
-			/*GraphAnimation(titleMoveFlameCount, titleMoveFlameNumber, 30);*/
+			
 
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = TITLE;
+				
+				clearPlayHandle = false;
 			}
 
 			break;
@@ -1229,6 +1241,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNow)
 		{
 		case TITLE:
+
+			
 
 			Novice::DrawSprite(0, 0, titleGraph, 1, 1, 0.0f, WHITE);
 			frameIndex = (currentFrame >= 30) ? 29 : currentFrame; // 确保索引不越界
@@ -1463,6 +1477,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case GAMEEND:
 
+			if (!gameOverPlayHandle) {
+				Novice::PlayAudio(gameOverBgmHandle, false, 1.0f);
+
+				gameOverPlayHandle = true;
+			}
 			Novice::DrawSpriteRect(0, 0, 1280 * gameOverMoveFlameNumber, 0, 1280, 720, gameOverGraph, 1.0f / 9.0f, 1.0f, 0.0f, WHITE);
 
 			/*if (gameOverMoveFlameNumber >= 90) {
@@ -1479,10 +1498,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{
 					graphPosY = 200;
 				}
-			Novice::ScreenPrintf(10, 10, "%d", graphPosY);
+		/*	Novice::ScreenPrintf(10, 10, "%d", graphPosY);*/
 
 			break;
 		case GAMECLEAR:
+
+			if (!clearPlayHandle) {
+				Novice::PlayAudio(clearBgmHandle, false, 1.0f);
+
+				clearPlayHandle = true;
+			}
+
 			Novice::DrawBox(0, 0, 1280, 720, 0.0f, 0xFFFFFFFF, kFillModeSolid);
 			Novice::DrawSprite(0, 0, gameClearGraph, 1, 1, 0.0f, WHITE);
 			Novice::DrawSprite(0, 300, playAgainGraph, 1.0f, 1.0f, 0.0f, WHITE);
