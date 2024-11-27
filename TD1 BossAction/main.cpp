@@ -412,6 +412,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//クリックしたとき
 	int clickSound = Novice::LoadAudio("./image/clickSound.mp3");
 
+	int kickSound = Novice::LoadAudio("./image/kick.mp3");
+
 	int titlePlayHandle = 0;
 	int clearPlayHandle = 0;
 	int gameOverPlayHandle = 0;
@@ -422,6 +424,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int enemyKickPlayHandle = 0;
 	int jumpPlayHandle = 0;
 	int clickHandle = 0;
+	int kickHandle = 0;
 
 	/*int playerBlowSkyPlayHandle = 0;*/
 	//int titleMoveFlameNumber = 0;
@@ -575,7 +578,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		GAMEEND,
 		GAMECLEAR
 	};
-	SCENE sceneNow = GAMEEND;
+	SCENE sceneNow = TITLE;
 
 
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
@@ -646,10 +649,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			player.pos.x = 200.0f;
 			player.pos.y = 300.0f;
-			player.hp = 1; //HP
+			player.hp = 30; //HP
 			enemy.pos.x = 900.0f;
 			enemy.pos.y = 300.0f;
-			enemy.hp = 1; //HP
+			enemy.hp = 60; //HP
+
+			for (int i = 0; i < playerKickCount; i++)
+			{
+				playerKick[i].direction.x = 1.0f;
+				playerKick[i].pos.x = player.pos.x;
+				playerKick[i].pos.y = player.pos.y;
+				playerKick[i].speed = 10.0f;
+				playerKick[i].radius = 0.0f;
+				playerKick[i].isShot = false;
+				playerKick[i].rightTop.x = 0.0f;
+				playerKick[i].rightTop.y = 0.0f;
+				playerKick[i].leftBottom.x = 0.0f;
+				playerKick[i].leftBottom.y = 0.0f;
+			}
 
 			break;
 		case SETUMEI:
@@ -1089,6 +1106,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{
 					enemy.isAlive = false;
 					enemy.hp -= playerKick[i].damage;
+					Novice::StopAudio(kickHandle);
+
+					if (!Novice::IsPlayingAudio(kickHandle))
+					{
+						kickHandle = Novice::PlayAudio(kickSound, false, 1.0f);
+					}
 				}
 			}
 
