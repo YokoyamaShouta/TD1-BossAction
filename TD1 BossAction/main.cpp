@@ -386,13 +386,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	////プレイヤーの攻撃が空ぶったとき
 	//int playerBlowSkyBgmHandle = Novice::LoadAudio("./image/se_swing2.mp3");
 
+	//敵のキックが当たった時
+	int enemyKickBgmHandle = Novice::LoadAudio("./image/taihou1.mp3");
+
 	//敵が攻撃を当てたとき
 	int enemyBlowBgmHandle = Novice::LoadAudio("./image/se_damage13.mp3");
 
+	//ジャンプしたとき
+	int jumpBgmHandle = Novice::LoadAudio("./image/se_jump1.mp3");
+
 	int playerBlowPlayHandle = 0;
-	/*int playerBlowSkyPlayHandle = 0;*/
 	int enemyBlowPlayHandle = 0;
-	
+	int enemyKickPlayHandle = 0;
+	int jumpPlayHandle = 0;
+
+	/*int playerBlowSkyPlayHandle = 0;*/
 	//int titleMoveFlameNumber = 0;
 	//int titleMoveFlameCount = 0;
 	int gameOverMoveFlameNumber = 0;
@@ -635,6 +643,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (!player.isAction && !player.isAction2 && !player.isStore)
 			{
 				Jump(player, keys, preKeys);
+
+				if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] /*&& player.jumpCount > 2*/) {
+
+					if (!Novice::IsPlayingAudio(jumpPlayHandle)) {
+						jumpPlayHandle = Novice::PlayAudio(jumpBgmHandle, false, 1.0f);
+					}
+
+				}
+				
 			}
 
 			//キック
@@ -1031,8 +1048,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					player.isAlive && enemy.isAlive
 					)
 				{
-					player.isAlive = false;
-					player.hp -= enemy.punchDamage;
+					enemy.isAlive = false;
+					enemy.hp -= player.punchDamage;
 					if (!Novice::IsPlayingAudio(playerBlowPlayHandle)) {
 						playerBlowPlayHandle = Novice::PlayAudio(playerBlowBgmHandle, false, 1.0f);
 					}
@@ -1082,6 +1099,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{
 					player.isAlive = false;
 					player.hp -= enemy.punchDamage;
+					if (!Novice::IsPlayingAudio(enemyKickPlayHandle)) {
+						enemyKickPlayHandle = Novice::PlayAudio(enemyKickBgmHandle, false, 1.0f);
+					}
 				}
 			}
 			//復活　
