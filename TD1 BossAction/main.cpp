@@ -367,8 +367,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//背景
 	int backgroundGraph = Novice::LoadTexture("./image/background.png");
 
-	//タイトル画面
-	/*int titleBackgroundGraph = Novice::LoadTexture("./image/titleBackground.png");*/
+	
 
 	//ゲームオーバー画面
 	int gameOverGraph = Novice::LoadTexture("./image/gameOver.png");
@@ -382,8 +381,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//BGM,SE
 
+	//タイトルのBGM
+	int titleBgmHandle = Novice::LoadAudio("./image/GB-Fighting-B03-1(Story2).mp3");
+
 	//playのBGM
 	int battleBgmHandle = Novice::LoadAudio("./image/GB-Fighting-B11-1(Stage7).mp3");
+
+	//clearのBGM
+	int clearBgmHandle = Novice::LoadAudio("./image/HAHA.wav");
+
+	//gameoverのBGM
+	int gameOverBgmHandle = Novice::LoadAudio("./image/AAAA.wav");
+
 
 	//プレイヤーが攻撃を当てたとき
 	int playerBlowBgmHandle = Novice::LoadAudio("./image/se_damage12.mp3");
@@ -403,6 +412,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//クリックしたとき
 	int clickSound = Novice::LoadAudio("./image/clickSound.mp3");
 
+	int titlePlayHandle = 0;
+	int clearPlayHandle = 0;
+	int gameOverPlayHandle = 0;
 	int downSound = Novice::LoadAudio("./image/downSound.mp3");
 
 	int battlePlayHandle = 0;
@@ -488,7 +500,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Charactor isPunchEnemy;
 	isPunchEnemy.pos.x = 60.0f;
 	isPunchEnemy.pos.y = 64.0f;
-	isPunchEnemy.radius.x = 60.0f;
+	isPunchEnemy.radius.x = 63.0f;
 	isPunchEnemy.radius.y = 64.0f;
 
 	//パンきnemyEの四隅
@@ -608,6 +620,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = GAMEPLAY;
+				Novice::StopAudio(titlePlayHandle);
 			}
 
 			if (keys[DIK_TAB] && !preKeys[DIK_TAB])
@@ -636,10 +649,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			player.pos.x = 200.0f;
 			player.pos.y = 300.0f;
-			player.hp = 30; //HP
+			player.hp = 1; //HP
 			enemy.pos.x = 900.0f;
 			enemy.pos.y = 300.0f;
-			enemy.hp = 60; //HP
+			enemy.hp = 1; //HP
 
 			break;
 		case SETUMEI:
@@ -822,7 +835,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 
 			//敵の攻撃 決める
-			if (!enemy.isAction)
+			if (!enemy.isAction && enemy.hp < 0)
 			{
 				enemy.actionJudge = static_cast<int>(rand() % 9 + 1) ;
 				enemy.isAction = true;
@@ -1141,6 +1154,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			if (enemy.isKick)
 			{
+				if (!Novice::IsPlayingAudio(enemyKickPlayHandle)) {
+					enemyKickPlayHandle = Novice::PlayAudio(enemyKickBgmHandle, false, 1.0f);
+				}
 				if (isKickEnemy.rightTop.x > player.leftBottom.x &&
 					isKickEnemy.leftBottom.x < player.rightTop.x &&
 					isKickEnemy.rightTop.y < player.leftBottom.y &&
@@ -1150,9 +1166,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{
 					player.isAlive = false;
 					player.hp -= enemy.punchDamage;
-					if (!Novice::IsPlayingAudio(enemyKickPlayHandle)) {
-						enemyKickPlayHandle = Novice::PlayAudio(enemyKickBgmHandle, false, 1.0f);
-					}
+					
 				}
 			}
 			//復活　
@@ -1217,7 +1231,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				sceneCount++;
 			}
 
-			if (sceneCount >= 120)
+			if (sceneCount >= 240)
 			{
 				if (player.hp <= 0)
 				{
@@ -1240,6 +1254,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case GAMEEND:
 
+			Novice::StopAudio(battlePlayHandle);
+
 			BackGroundAnimation(gameOverMoveFlameCount, gameOverMoveFlameNumber, 9);
 
 			if (graphPosY >= 200)
@@ -1258,14 +1274,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			
 
+			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
+			{
+				sceneNow = TITLE;
+				gameOverPlayHandle = false;
+			}
+
 			break;
 		case GAMECLEAR:
 
-			/*GraphAnimation(titleMoveFlameCount, titleMoveFlameNumber, 30);*/
+			Novice::StopAudio(battlePlayHandle);
 
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = TITLE;
+				
+				clearPlayHandle = false;
 			}
 
 			break;
@@ -1282,6 +1306,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNow)
 		{
 		case TITLE:
+			if (Novice::IsPlayingAudio(titlePlayHandle) == false) {
+				titlePlayHandle = Novice::PlayAudio(titleBgmHandle, false, 1.0f);
+			}
+			
 
 			Novice::DrawSprite(0, 0, titleGraph, 1, 1, 0.0f, WHITE);
 			frameIndex = (currentFrame >= 30) ? 29 : currentFrame; // 确保索引不越界
@@ -1295,6 +1323,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case SETUMEI:
 			Novice::DrawSprite(0, 0, setumeiGraph, 1.0f, 1.0f, 0.0f, WHITE);
+			if (Novice::IsPlayingAudio(titlePlayHandle) == false) {
+				titlePlayHandle = Novice::PlayAudio(titleBgmHandle, false, 1.0f);
+			}
 			break;
 		case GAMEPLAY:
 #pragma region		
@@ -1508,6 +1539,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case GAMEEND:
 
+			if (!gameOverPlayHandle) {
+				Novice::PlayAudio(gameOverBgmHandle, false, 1.0f);
+
+				gameOverPlayHandle = true;
+			}
 			Novice::DrawSpriteRect(0, 0, 1280 * gameOverMoveFlameNumber, 0, 1280, 720, gameOverGraph, 1.0f / 9.0f, 1.0f, 0.0f, WHITE);
 
 			/*if (gameOverMoveFlameNumber >= 90) {
@@ -1519,6 +1555,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			break;
 		case GAMECLEAR:
+
+			if (!clearPlayHandle) {
+				Novice::PlayAudio(clearBgmHandle, false, 1.0f);
+
+				clearPlayHandle = true;
+			}
+
 			Novice::DrawBox(0, 0, 1280, 720, 0.0f, 0xFFFFFFFF, kFillModeSolid);
 			Novice::DrawSprite(0, 0, gameClearGraph, 1, 1, 0.0f, WHITE);
 			Novice::DrawSprite(0, 300, playAgainGraph, 1.0f, 1.0f, 0.0f, WHITE);
