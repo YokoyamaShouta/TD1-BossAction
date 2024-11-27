@@ -367,8 +367,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//背景
 	int backgroundGraph = Novice::LoadTexture("./image/background.png");
 
-	//タイトル画面
-	/*int titleBackgroundGraph = Novice::LoadTexture("./image/titleBackground.png");*/
+	
 
 	//ゲームオーバー画面
 	int gameOverGraph = Novice::LoadTexture("./image/gameOver.png");
@@ -381,6 +380,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 	//BGM,SE
+
+	//タイトルのBGM
+	int titleBgmHandle = Novice::LoadAudio("./image/GB-Fighting-B03-1(Story2).mp3");
 
 	//playのBGM
 	int battleBgmHandle = Novice::LoadAudio("./image/GB-Fighting-B11-1(Stage7).mp3");
@@ -408,7 +410,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int jumpBgmHandle = Novice::LoadAudio("./image/se_jump1.mp3");
 
 
-
+	int titlePlayHandle = 0;
 	int clearPlayHandle = 0;
 	int gameOverPlayHandle = 0;
 	int battlePlayHandle = 0;
@@ -619,6 +621,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
 			{
 				sceneNow = GAMEPLAY;
+				Novice::StopAudio(titlePlayHandle);
 			}
 
 			if (keys[DIK_TAB] && !preKeys[DIK_TAB])
@@ -1242,7 +1245,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (sceneNow)
 		{
 		case TITLE:
-
+			if (Novice::IsPlayingAudio(titlePlayHandle) == false) {
+				titlePlayHandle = Novice::PlayAudio(titleBgmHandle, false, 1.0f);
+			}
 			
 
 			Novice::DrawSprite(0, 0, titleGraph, 1, 1, 0.0f, WHITE);
@@ -1257,6 +1262,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case SETUMEI:
 			Novice::DrawSprite(0, 0, setumeiGraph, 1.0f, 1.0f, 0.0f, WHITE);
+			if (Novice::IsPlayingAudio(titlePlayHandle) == false) {
+				titlePlayHandle = Novice::PlayAudio(titleBgmHandle, false, 1.0f);
+			}
 			break;
 		case GAMEPLAY:
 #pragma region		
