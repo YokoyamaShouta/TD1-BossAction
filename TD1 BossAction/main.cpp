@@ -580,7 +580,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
 	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
 	int playAgainGraph = Novice::LoadTexture("./image/playAgain.png");
-
+	int gamePlayGraph = Novice::LoadTexture("./image/GamePlay.png");
+	int explanationGraph = Novice::LoadTexture("./image/explanation.png");
 
 	int backImg[30];
 	for (int i = 0; i < 30; i++) {
@@ -1249,6 +1250,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::DrawSprite(0, 0, backImg[frameIndex], 1, 1, 0, WHITE);
 			/*Novice::DrawSpriteRect(0, 0, 1280 * titleMoveFlameNumber, 0, 1280, 720, titleBackgroundGraph, 1.0f / 30.0f, 1.0f, 0.0f, WHITE);*/
 			Novice::DrawSprite(-40, 100, titleLetterGraph, 1, 1, 0.0f, WHITE);
+			Novice::DrawSprite(0, 10, explanationGraph, 1.0f, 1.0f, 0.0f, WHITE);
+			Novice::DrawSprite(400, 600, gamePlayGraph, 1.0f, 1.0f, 0.0f, WHITE);
+
 
 			break;
 		case SETUMEI:
