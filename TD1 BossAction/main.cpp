@@ -415,7 +415,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int titlePlayHandle = 0;
 	int clearPlayHandle = 0;
 	int gameOverPlayHandle = 0;
-	int downSound = Novice::LoadAudio("./image/downSound.mp3");
 
 	int battlePlayHandle = 0;
 	int playerBlowPlayHandle = 0;
@@ -423,7 +422,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int enemyKickPlayHandle = 0;
 	int jumpPlayHandle = 0;
 	int clickHandle = 0;
-	int downHandle = 0;
 
 	/*int playerBlowSkyPlayHandle = 0;*/
 	//int titleMoveFlameNumber = 0;
@@ -577,9 +575,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		GAMEEND,
 		GAMECLEAR
 	};
-	SCENE sceneNow = TITLE;
+	SCENE sceneNow = GAMEEND;
 
-	int sceneCount = 0;
 
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
 	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
@@ -670,6 +667,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		case GAMEPLAY:
 #pragma region
+
+			////BGM
+			if (Novice::IsPlayingAudio(battlePlayHandle) == false) {
+				battlePlayHandle = Novice::PlayAudio(battleBgmHandle, false, 1.0f);
+			}
 
 			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] && player.jumpCount <= 1)
 			{
@@ -1209,47 +1211,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			if (player.hp <= 0)
 			{
-				Novice::StopAudio(downHandle);
-
-				if (!Novice::IsPlayingAudio(downHandle))
-				{
-					downHandle = Novice::PlayAudio(downSound, false, 1.0f);
-				}
-				Novice::StopAudio(battlePlayHandle);
-				sceneCount++;
+				sceneNow = GAMEEND;
 			}
 
 			if (enemy.hp <= 0)
 			{
-				Novice::StopAudio(downHandle);
-
-				if (!Novice::IsPlayingAudio(downHandle))
-				{
-					downHandle = Novice::PlayAudio(downSound, false, 1.0f);
-				}
-				Novice::StopAudio(battlePlayHandle);
-				sceneCount++;
+				sceneNow = GAMECLEAR;
 			}
 
-			if (sceneCount >= 240)
-			{
-				if (player.hp <= 0)
-				{
-					sceneNow = GAMEEND;
-				}
-				else if (enemy.hp <= 0)
-				{
-					sceneNow = GAMECLEAR;
-				}
-				sceneCount = 0;
-			}
-
+			
 
 #pragma endregion
-			////BGM
-			if (Novice::IsPlayingAudio(battlePlayHandle) == false) {
-				battlePlayHandle = Novice::PlayAudio(battleBgmHandle, false, 1.0f);
-			}
+			
 
 			break;
 		case GAMEEND:
@@ -1291,7 +1264,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				
 				clearPlayHandle = false;
 			}
-
 			break;
 		}
 
