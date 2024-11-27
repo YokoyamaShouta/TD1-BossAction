@@ -494,7 +494,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Charactor isPunchEnemy;
 	isPunchEnemy.pos.x = 60.0f;
 	isPunchEnemy.pos.y = 64.0f;
-	isPunchEnemy.radius.x = 60.0f;
+	isPunchEnemy.radius.x = 63.0f;
 	isPunchEnemy.radius.y = 64.0f;
 
 	//パンきnemyEの四隅
@@ -577,7 +577,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		GAMEEND,
 		GAMECLEAR
 	};
-	SCENE sceneNow = GAMECLEAR;
+	SCENE sceneNow = TITLE;
 
 	int setumeiGraph = Novice::LoadTexture("./image/setumei.png");
 	int titleGraph = Novice::LoadTexture("./image/titleTmp.png");
@@ -1143,6 +1143,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			if (enemy.isKick)
 			{
+				if (!Novice::IsPlayingAudio(enemyKickPlayHandle)) {
+					enemyKickPlayHandle = Novice::PlayAudio(enemyKickBgmHandle, false, 1.0f);
+				}
 				if (isKickEnemy.rightTop.x > player.leftBottom.x &&
 					isKickEnemy.leftBottom.x < player.rightTop.x &&
 					isKickEnemy.rightTop.y < player.leftBottom.y &&
@@ -1152,9 +1155,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{
 					player.isAlive = false;
 					player.hp -= enemy.punchDamage;
-					if (!Novice::IsPlayingAudio(enemyKickPlayHandle)) {
-						enemyKickPlayHandle = Novice::PlayAudio(enemyKickBgmHandle, false, 1.0f);
-					}
+					
 				}
 			}
 			//復活　
@@ -1485,7 +1486,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::DrawBox(80, 30, player.hp * 16, 20, 0.0f, 0xff000085, kFillModeSolid);
 			Novice::DrawBox(700, 30, enemy.hp * 8, 20, 0.0f, 0xff000085, kFillModeSolid);
 		
-			Novice::ScreenPrintf(10, 80, "%d", enemy.kickCount);
+			/*Novice::ScreenPrintf(10, 80, "%d", enemy.kickCount);*/
 			break;
 		case GAMEEND:
 
