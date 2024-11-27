@@ -688,7 +688,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 				playerNextPunchCount++;
 
-				if (playerNextPunchCount >= 5 && playerNextPunchCount <= 30 && playerPunchKeyCount == 1)
+				if (playerNextPunchCount >= 2 && playerNextPunchCount <= 30 && playerPunchKeyCount == 1)
 				{
 					if (keys[DIK_Q] && !preKeys[DIK_Q])
 					{
@@ -1028,12 +1028,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					isPunchPlayer.leftBottom.x < enemy.rightTop.x &&
 					isPunchPlayer.rightTop.y < enemy.leftBottom.y &&
 					isPunchPlayer.leftBottom.y > enemy.rightTop.y &&
-					player.isAlive && enemy.isAlive){
+					player.isAlive && enemy.isAlive
+					)
+				{
+					player.isAlive = false;
+					player.hp -= enemy.punchDamage;
 					if (!Novice::IsPlayingAudio(playerBlowPlayHandle)) {
 						playerBlowPlayHandle = Novice::PlayAudio(playerBlowBgmHandle, false, 1.0f);
 					}
-					enemy.isAlive = false;
-					enemy.hp -= player.punchDamage;
 				}
 				
 			}
@@ -1386,16 +1388,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			Novice::DrawBox(80, 30, player.hp * 16, 20, 0.0f, 0xff000085, kFillModeSolid);
 			Novice::DrawBox(700, 30, enemy.hp * 8, 20, 0.0f, 0xff000085, kFillModeSolid);
-			/*Novice::DrawEllipse((int)enemy.pos.x, (int)enemy.pos.y, (int)enemy.radius.x, (int)enemy.radius.y, 0.0f, RED, kFillModeWireFrame);
-			Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius.x, (int)player.radius.y, 0.0f, RED, kFillModeWireFrame);
-			
-			Novice::ScreenPrintf(10, 40, "%d", enemy.actionJudge);
-			Novice::ScreenPrintf(10, 80, "%d", enemy.jumpCount);
-			Novice::ScreenPrintf(10, 120, "move %d", enemy.moveCount);
-			Novice::ScreenPrintf(10, 140, "none %d", enemy.noneCount);
-			Novice::ScreenPrintf(10, 160, "punch %d", enemy.punchCount);
-			Novice::ScreenPrintf(10, 180, "kick %d", enemy.kickCount);*/
-
+		
 			break;
 		case GAMEEND:
 
